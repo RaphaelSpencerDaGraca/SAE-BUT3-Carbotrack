@@ -4,9 +4,22 @@ export interface User{
     pseudo:string;
 }
 
+export interface AuthResponse {
+    token: string;
+    user: User;
+}
+
+export interface UserData {
+    email: string;
+    password: string;
+    pseudo: string;
+}
+
 export interface AuthContextType{
     user: User | null;
     login: (email: string, password: string) => Promise<void>;
     register: (email: string, password: string,pseudo:string) => Promise<void>;
     logout:()=> void;
 }
+
+export type AuthMode = 'login' | 'register';
