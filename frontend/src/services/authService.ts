@@ -1,5 +1,5 @@
 import api from './api';
-import { AuthResponse, UserData } from './types';
+import { AuthResponse, UserData } from '../models/types.ts';
 
 
 export const register = async (userData:UserData):Promise<AuthResponse> => {

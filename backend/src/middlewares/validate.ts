@@ -2,6 +2,15 @@
 import { body, validationResult, ValidationChain } from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
 
+// Fonction pour gérer les erreurs de validation
+const handleValidationErrors = (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    next();
+};
+
 /**
  * Middleware pour valider les données d'inscription
  */
@@ -20,15 +29,6 @@ export const validateRegistration: ValidationChain[] = [
         .isString()
         .trim()
         .withMessage('Le prénom doit être une chaîne de caractères'),
-
-    // Gestion des erreurs de validation
-    (req: Request, res: Response, next: NextFunction) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-        next();
-    }
 ];
 
 /**
@@ -43,37 +43,9 @@ export const validateLogin: ValidationChain[] = [
     body('password')
         .notEmpty()
         .withMessage('Le mot de passe est requis'),
-
-    (req: Request, res: Response, next: NextFunction) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-        next();
-    }
 ];
 
-/**
- * Middleware pour valider les entrées CO₂
- */
-export const validateCarbonEntry: ValidationChain[] = [
-    body('category')
-        .isIn(['transport', 'logement', 'alimentation', 'divers'])
-        .withMessage('Catégorie invalide'),
-
-    body('co2_value')
-        .isFloat({ min: 0 })
-        .withMessage('La valeur CO₂ doit être un nombre positif'),
-
-    body('date')
-        .isISO8601()
-        .withMessage('La date doit être au format ISO 8601 (YYYY-MM-DD)'),
-
-    (req: Request, res: Response, next: NextFunction) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-        next();
-    }
-];
+// Export des middlewares complets (validation + gestion des erreurs)
+export const withValidation = (validations: ValidationChain[]) => {
+    return [validations, handleValidationErrors];
+};

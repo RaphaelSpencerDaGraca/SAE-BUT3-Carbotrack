@@ -8,7 +8,7 @@ const pool = new Pool({
     password: process.env.DB_PASSWORD || '1234',
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5432'),
-    database: process.env.DB_NAME || 'carbon_db',
+    database: process.env.DB_NAME || 'carbotrack_db',
 });
 
 // Test de connexion
