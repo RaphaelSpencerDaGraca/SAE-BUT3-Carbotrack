@@ -11,8 +11,8 @@ const pool = new Pool({
     database: process.env.DB_NAME || 'carbotrack_db',
 });
 
-// Test de connexion
-const testConnection = async (): Promise<void> => {
+
+export const testConnection = async (): Promise<void> => {
     try {
         const res = await pool.query<{ now: string }>('SELECT NOW()');
         if (res.rows.length > 0) {

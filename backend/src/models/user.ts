@@ -1,24 +1,41 @@
 import pool from "../config/db";
 
-interface DBUser {
+export interface DBUser {
     id: string;
     email: string;
     password_hash: string;
-    pseudo: string;
+    pseudo?: string;
     created_at: Date;
 }
 
-export const creatUser = async(email: string, password_hash: string, pseudo: string): Promise<DBUser> => {
-    const query = 'INSERT INTO users (email,password_hash,pseudo) VALUES ($1,$1,$3) RETURNING id,email,created_at';
-    const values = [email, password_hash, pseudo];
-    const { rows } = await pool.query(query, values);
-    return rows[0];
-}
+export const createUser = async (email: string, password_hash: string, pseudo: string): Promise<DBUser> => {
+    try {
+        const userQuery = 'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email, created_at';
+        const userValues = [email, password_hash];
+        const userResult = await pool.query(userQuery, userValues);
+        const userId = userResult.rows[0].id;
 
-export const findUserByEmail = async(email: string): Promise<DBUser> => {
-    const query = 'SELECT * FROM users where email=$1';
-    const values = [email];
-    const {rows} = await pool.query(query,values);
-    return rows[0];
-}
+        const profileQuery = 'INSERT INTO user_profiles (user_id, pseudo) VALUES ($1, $2) RETURNING pseudo';
+        const profileValues = [userId, pseudo];
+        await pool.query(profileQuery, profileValues);
 
+        return { ...userResult.rows[0], pseudo };
+    } catch (error) {
+        throw new Error(`Erreur lors de la création de l'utilisateur: ${error}`);
+    }
+};
+
+export const getUserByEmail = async (email: string): Promise<DBUser | null> => {
+    try {
+        const query = `
+            SELECT users.id, users.email, users.password_hash, user_profiles.pseudo, users.created_at
+            FROM users
+            LEFT JOIN user_profiles ON users.id = user_profiles.user_id
+            WHERE users.email = $1
+        `;
+        const { rows } = await pool.query(query, [email]);
+        return rows[0] || null;
+    } catch (error) {
+        throw new Error(`Erreur lors de la récupération de l'utilisateur: ${error}`);
+    }
+};

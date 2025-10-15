@@ -1,8 +1,6 @@
-// backend/src/middlewares/validate.ts
 import { body, validationResult, ValidationChain } from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
 
-// Fonction pour gérer les erreurs de validation
 const handleValidationErrors = (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -45,7 +43,6 @@ export const validateLogin: ValidationChain[] = [
         .withMessage('Le mot de passe est requis'),
 ];
 
-// Export des middlewares complets (validation + gestion des erreurs)
 export const withValidation = (validations: ValidationChain[]) => {
     return [validations, handleValidationErrors];
 };

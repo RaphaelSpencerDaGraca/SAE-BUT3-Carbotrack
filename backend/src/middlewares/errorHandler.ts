@@ -1,5 +1,9 @@
-// backend/src/middlewares/errorHandler.ts
 import { Request, Response, NextFunction } from 'express';
+
+interface CustomError extends Error {
+    status?: number;
+    errors?: string[];
+}
 
 /**
  * Middleware pour gérer les erreurs 404 (routes non trouvées)
@@ -15,24 +19,18 @@ export const notFoundHandler = (req: Request, res: Response) => {
  * Middleware pour gérer les erreurs 500 et autres
  */
 export const errorHandler = (
-    err: Error,
+    err: CustomError,
     req: Request,
     res: Response,
     next: NextFunction
 ) => {
     console.error('Erreur:', err.stack);
-
-    // Erreurs de validation (ex: express-validator)
-    if ('status' in err && 'errors' in err) {
+    if (err.status && err.errors) {
         return res.status(err.status).json({ errors: err.errors });
     }
-
-    // Erreurs connues
     if (err.name === 'ValidationError') {
         return res.status(400).json({ error: err.message });
     }
-
-    // Erreurs par défaut (500)
     res.status(500).json({
         error: 'Erreur serveur',
         message: process.env.NODE_ENV === 'development' ? err.message : undefined

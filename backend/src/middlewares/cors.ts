@@ -1,4 +1,3 @@
-// backend/src/middlewares/cors.ts
 import { Request, Response, NextFunction } from 'express';
 
 /**
