@@ -1,32 +1,27 @@
 {
   "compilerOptions": {
-    // Fichiers et structure
-    "rootDir": "./src",                  // Dossier source (à créer si inexistant)
-    "outDir": "./dist",                 // Dossier de sortie (code compilé)
-    "baseUrl": ".",                     // Point de base pour les imports
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "baseUrl": ".",
 
-    // Environnement Node.js
-    "target": "ES2020",                 // Cible les fonctionnalités ES2020
-    "module": "commonjs",                // Obligatoire pour Node.js (pas "nodenext")
-    "lib": ["ES2020"],                   // Librairies types pour Node.js
-    "types": ["node"],                   // Types Node.js intégrés
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "lib": ["ES2020"],
+    "types": ["node"],
 
-    // Sortie et débogage
-    "sourceMap": true,                  // Génère des source maps pour le débogage
-    "declaration": true,                // Génère des fichiers .d.ts
-    "declarationMap": true,             // Source maps pour les déclarations
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
 
-    // Vérifications strictes (recommandé)
-    "strict": true,                      // Active toutes les vérifications strictes
-    "noImplicitAny": true,              // Interdit les `any` implicites
-    "esModuleInterop": true,            // Compatibilité ES modules/CommonJS
-    "skipLibCheck": true,               // Ignore les erreurs dans les librairies
-    "forceConsistentCasingInFileNames": true,  // Évite les problèmes de casse
-
-    // Options avancées (optionnelles)
-    "noUncheckedIndexedAccess": true,    // Sécurité pour les accès aux tableaux/objets
-    "exactOptionalPropertyTypes": true  // Précision sur les types optionnels
+    "strict": true,
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true
   },
-  "include": ["src/**/*"],              // Inclut tous les fichiers dans src/
-  "exclude": ["node_modules", "dist"]   // Exclut les dossiers inutiles
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -1,21 +1,27 @@
 {
   "compilerOptions": {
-    "target": "ES6",
-    "module": "ESNext",               // Compatible avec les imports ES6
-    "jsx": "react-jsx",               // Pour React 17+
-    "strict": true,                   // Active le mode strict
-    "skipLibCheck": true,              // Ignore les erreurs dans les librairies
-    "forceConsistentCasingInFileNames": true,  // Évite les problèmes de casse
-    "noImplicitAny": true,            // Interdit les 'any' implicites
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "moduleResolution": "node",       // Résolution des modules Node.js
-    "baseUrl": ".",                   // Point de base pour les imports
+    "baseUrl": "src",
     "paths": {
-      "@/*": ["src/*"]                // Alias pour les imports (optionnel)
-    }
-  },
-  "include": ["src"],                 // Inclut tous les fichiers dans src/
-  "exclude": ["node_modules"]          // Exclut node_modules
+      "@/*": ["*"]
+    },
+    "forceConsistentCasingInFileNames": true,
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
 
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src", "vite.config.ts"]
 }

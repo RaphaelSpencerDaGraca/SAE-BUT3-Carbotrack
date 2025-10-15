@@ -1,27 +1,27 @@
 import api from './api';
+import { AuthResponse, UserData } from '../models/types';
 
-interface AuthResponse{
-    token:string;
-    userId:string;
-}
-
-interface UserData{
-    email:string;
-    password:string;
-    pseudo:string;
-}
-
-export const register = async (userData:UserData):Promise<AuthResponse> => {
-    const response = await  api.post('/auth/register',userData);
-    return response.data
+export const register = async (userData: UserData): Promise<AuthResponse> => {
+    try {
+        const response = await api.post('/auth/register', userData);
+        return response.data;
+    } catch (error) {
+        console.error('Registration error:', error);
+        throw error;
+    }
 };
 
-export const login = async (userData:UserData):Promise<AuthResponse> => {
-    const response = await  api.post('/auth/login',userData);
-    localStorage.setItem('token', response.data.token); //permet de stocker le tocken
-    return response.data
+export const login = async (credentials: Omit<UserData, 'pseudo'>): Promise<AuthResponse> => {
+    try {
+        const response = await api.post('/auth/login', credentials);
+        return response.data;
+    } catch (error) {
+        console.error('Login error:', error);
+        throw error;
+    }
 };
 
-export const logout = (): void =>{
+export const logout = (): void => {
     localStorage.removeItem('token');
-}
+    localStorage.removeItem('user');
+};
