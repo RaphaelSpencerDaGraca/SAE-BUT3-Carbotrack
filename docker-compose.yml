@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: carbotrack
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: carbotrack_db
+    volumes:
+      - sae_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - sae_default
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d carbotrack_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  sae_postgres_data:
+
+networks:
+  sae_default:
+    driver: bridge
