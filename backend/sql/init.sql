@@ -1,5 +1,5 @@
 -- Table des utilisateurs
-create table users (
+create table if not exists users (
                        id UUID primary key default gen_random_uuid(),
                        email varchar(255) unique not null,
                        password_hash VARCHAR(255) not null,
@@ -12,7 +12,7 @@ create table users (
 
 create type genre_enum as enum ('Homme','Femme','Autre');
 --Table des profils utilisateurs
-create table user_profiles(
+create table if not exists user_profiles(
                               user_id UUID primary key references users(id),
                               pseudo varchar(100),
                               genre genre_enum
