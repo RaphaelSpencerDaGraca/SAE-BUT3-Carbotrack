@@ -1,0 +1,5 @@
+@import "tailwindcss";
+@reference "tailwindcss/utilities";
+
+/* (optionnel) classes personnalisées globales */
+.tw-test { @apply bg-green-500 text-white p-4 rounded; }
