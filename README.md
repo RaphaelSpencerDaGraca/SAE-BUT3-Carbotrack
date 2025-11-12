@@ -19,20 +19,20 @@ Ce projet est une application hybride avec un **frontend Vite** et un **backend 
    cd <nom du fichier racine>
 
 2. **Installer les dépendances pour le développement local
-
+    ```bash
     npm run install\:all
 
 
 ## **Développement du projet**
 
 1. **Lancer la base de données PosstgreSQL**
-
+    ```bash
     docker-compose -f docker-compose.dev.yml up
 
 PS: Pensez à ouvrir une nouvelle fenêtre de terminale dans l'IDE pour exécuter d'autres commandes
 
 2. **Lancer le Frontend et le Backend en local
-
+   ```bash
     npm run dev
 
 → Le frontend sera disponible sur http://localhost:5173.
@@ -41,7 +41,7 @@ PS: Pensez à ouvrir une nouvelle fenêtre de terminale dans l'IDE pour exécute
 Pendant le développement vous n'aurez pas besoin de relancer la commande npm run dev les changement seront implémentés automatiquement
 
 3. **Arrêter la base données**
-
+   ```bash
     docker-compose -f docker-compose.dev.yml down
 
 
