@@ -45,7 +45,7 @@ Pendant le développement vous n'aurez pas besoin de relancer la commande npm ru
     docker-compose -f docker-compose.dev.yml down
 
 
-## 🗃Base de données
+## Base de données
 - Les tables sont créées automatiquement au premier démarrage via le fichier `backend/sql/init.sql`.
 - Pour réinitialiser la base de données (ATTENTION supprime toutes les données) :
   ```bash
