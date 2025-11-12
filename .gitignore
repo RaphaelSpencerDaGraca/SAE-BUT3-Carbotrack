@@ -17,3 +17,4 @@ yarn-error.log*
 # IDE/OS
 .idea/
 .DS_Store
+my_app/
