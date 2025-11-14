@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "ts-node src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "seed:test-user": "npx ts-node ./scripts/seedTestUser.ts",
+    "test:login:server": "npx ts-node ./scripts/testLogin.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
