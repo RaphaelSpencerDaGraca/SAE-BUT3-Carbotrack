@@ -1,5 +1,62 @@
 'use client';
 
+import { NavLink } from "react-router-dom";
+
+const dockItems = [
+    { to: "/dashboard", label: "Dashboard" },
+    { to: "/vehicles", label: "Véhicules" },
+    { to: "/trips", label: "Trajets" },
+    { to: "/profile", label: "Profil" },
+];
+
+function Dock() {
+    return (
+        <nav className="fixed bottom-4 left-1/2 z-30 -translate-x-1/2">
+            <div className="flex gap-2 rounded-full border border-slate-800/80 bg-slate-900/90 px-3 py-2 shadow-lg shadow-black/40 backdrop-blur-sm">
+                {dockItems.map((item) => (
+                    <NavLink
+                        key={item.to}
+                        to={item.to}
+                        className={({ isActive }) =>
+                            [
+                                "px-4 py-2 text-xs font-medium rounded-full transition-colors",
+                                "focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:ring-offset-2 focus:ring-offset-slate-950",
+                                isActive
+                                    ? "bg-emerald-500 text-slate-950 shadow"
+                                    : "text-slate-300 hover:bg-slate-800/80",
+                            ].join(" ")
+                        }
+                    >
+                        {item.label}
+                    </NavLink>
+                ))}
+            </div>
+        </nav>
+    );
+}
+
+export default Dock;
+
+/*
+// src/components/nav/Dock.tsx
+
+const Dock = () => {
+    return (
+        <div className="fixed inset-x-0 bottom-0 flex justify-center pb-4">
+            <div className="flex gap-4 rounded-2xl border border-slate-800 bg-slate-900/80 px-4 py-3 backdrop-blur">
+                <button className="text-sm text-slate-100">Dashboard</button>
+                <button className="text-sm text-slate-400">Trajets</button>
+                <button className="text-sm text-slate-400">Véhicules</button>
+                <button className="text-sm text-slate-400">Profil</button>
+            </div>
+        </div>
+    );
+};
+
+export default Dock;
+
+
+ /*
 import {
     motion,
     MotionValue,
@@ -156,9 +213,9 @@ export default function Dock({
     return (
         <motion.div style={{ height, scrollbarWidth: 'none' }} className="mx-2 flex max-w-full items-center">
             <motion.div
-                onMouseMove={({ pageX }) => {
+                onMouseMove={(event: React.MouseEvent<HTMLDivElement>) => {
                     isHovered.set(1);
-                    mouseX.set(pageX);
+                    mouseX.set(event.pageX);
                 }}
                 onMouseLeave={() => {
                     isHovered.set(0);
@@ -188,3 +245,4 @@ export default function Dock({
         </motion.div>
     );
 }
+*/

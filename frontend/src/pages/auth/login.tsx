@@ -1,11 +1,23 @@
 import { useAuth } from '@/context/authContext';
 import AuthForm from '@/components/auth/authForm';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-    const { login } = useAuth(); // <- si dispo dans ton contexte
+    const { login } = useAuth();
+    const navigate = useNavigate();
 
     const onSubmit = async (email: string, password: string) => {
-        await login(email, password); // utilise les paramètres -> plus de TS6133
+        try {
+            // On tente de se connecter
+            await login(email, password);
+
+            //Si ça passe, on redirige vers le dashboard
+            navigate('/dashboard');
+        } catch (error) {
+            // Si login throw, AuthForm affichera sûrement déjà l’erreur,
+            // mais on log quand même pour debug
+            console.error('Erreur de connexion :', error);
+        }
     };
 
     return (
