@@ -1,3 +1,4 @@
+//backend\src\app.ts
 import express from 'express';
 //import {authenticate,} from './middlewares/auth';
 //import {validateRegistration, validateLogin, validateCarbonEntry} from './middlewares/validate';

@@ -1,3 +1,4 @@
+//frontend\src\pages\profile.tsx
 import { useAuth } from '../hooks/useAuth';
 
 const ProfilePage = () => {

@@ -1,3 +1,4 @@
+//frontend\src\pages\dashboard.tsx
 import { useAuth } from "../hooks/useAuth";
 
 type StatCardProps = {

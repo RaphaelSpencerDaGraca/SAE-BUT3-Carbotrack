@@ -1,4 +1,4 @@
-// src/pages/vehicles.tsx
+//frontend\src\pages\vehicles.tsx
 import type { Vehicle } from '@/types/vehicle';
 import { useMemo } from 'react';
 

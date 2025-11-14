@@ -1,3 +1,4 @@
+//frontend\src\components\nav\Dock.tsx
 'use client';
 
 import { NavLink } from "react-router-dom";
@@ -6,6 +7,7 @@ const dockItems = [
     { to: "/dashboard", label: "Dashboard" },
     { to: "/vehicles", label: "Véhicules" },
     { to: "/trips", label: "Trajets" },
+    {to:"/lifestyle",label: "Mode de vie"},
     { to: "/profile", label: "Profil" },
 ];
 

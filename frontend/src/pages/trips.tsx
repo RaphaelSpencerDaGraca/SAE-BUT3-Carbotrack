@@ -1,3 +1,4 @@
+//frontend\src\pages\trips.tsx
 type Trip = {
     id: number;
     date: string;

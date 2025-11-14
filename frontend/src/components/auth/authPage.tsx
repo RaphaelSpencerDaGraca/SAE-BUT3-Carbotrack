@@ -1,5 +1,5 @@
+//frontend\src\components\auth\authPage.tsx
 import React, { ReactNode } from 'react';
-
 interface AuthPageProps {
     title: string;
     children: ReactNode;

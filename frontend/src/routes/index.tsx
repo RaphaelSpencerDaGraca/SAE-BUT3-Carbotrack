@@ -1,3 +1,4 @@
+//frontend\src\routes\index.tsx
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../pages/auth/login';
 import Register from '../pages/auth/register';
@@ -6,7 +7,6 @@ import VehiclesPage from "@/pages/vehicles.tsx";
 import TripsPage from "@/pages/trips.tsx";
 import AuthedLayout from '@/components/layout/AuthedLayout';
 import ProfilePage from "@/pages/profile.tsx";
-
 const AppRoutes = () => {
     return (
         <Routes>
