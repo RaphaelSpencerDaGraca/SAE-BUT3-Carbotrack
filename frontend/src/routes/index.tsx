@@ -3,7 +3,6 @@ import Login from '../pages/auth/login';
 import Register from '../pages/auth/register';
 import Dashboard from '../pages/dashboard';
 import AuthedLayout from '@/components/layout/AuthedLayout';
-import VehiclesPage from "@/pages/vehicles.tsx";
 
 const AppRoutes = () => {
     return (
@@ -15,7 +14,6 @@ const AppRoutes = () => {
             {/* Pages connectées avec le Dock */}
             <Route element={<AuthedLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/vehicles" element={<VehiclesPage />} />
                 {/* Tu pourras ajouter d'autres pages ici */}
             </Route>
 
