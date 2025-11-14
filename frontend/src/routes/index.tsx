@@ -5,6 +5,7 @@ import Dashboard from '../pages/dashboard';
 import VehiclesPage from "@/pages/vehicles.tsx";
 import TripsPage from "@/pages/trips.tsx";
 import AuthedLayout from '@/components/layout/AuthedLayout';
+import ProfilePage from "@/pages/profile.tsx";
 
 const AppRoutes = () => {
     return (
@@ -18,6 +19,7 @@ const AppRoutes = () => {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/vehicles" element={<VehiclesPage />} />
                 <Route path="/trips" element={<TripsPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
                 {/* Tu pourras ajouter d'autres pages ici */}
             </Route>
 
