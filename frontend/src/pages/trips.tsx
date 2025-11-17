@@ -1,20 +1,11 @@
 //frontend\src\pages\trips.tsx
-type Trip = {
-    id: number;
-    date: string;
-    from: string;
-    to: string;
-    distanceKm: number;
-    vehicleName: string;
-    co2Kg: number;
-    tag?: string;
-};
+import type { Trip } from '../../../shared/types.trip.ts';
 
 const MOCK_TRIPS: Trip[] = [
     {
         id: 1,
         date: "2025-01-10",
-        from: "Paris",
+        from: "PAPAPAPA",
         to: "Orléans",
         distanceKm: 132,
         vehicleName: "Clio Diesel",
