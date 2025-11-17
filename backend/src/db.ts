@@ -1,7 +1,8 @@
+// backend/src/db.ts
 import { Pool } from 'pg';
 
 export const pool = new Pool({
-    host: 'localhost',        // ou le nom du service docker si tu fais backend → docker DB
+    host: 'localhost',
     port: 5432,
     user: 'user',
     password: '1234',
