@@ -1,3 +1,5 @@
+// frontend/src/types/vehicle.ts
+
 export type FuelType = 'essence' | 'diesel' | 'electrique' | 'hybride' | 'gpl' | 'autre';
 
 export interface Vehicle {
