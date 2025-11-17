@@ -49,5 +49,5 @@ Pendant le développement vous n'aurez pas besoin de relancer la commande npm ru
 - Les tables sont créées automatiquement au premier démarrage via le fichier `backend/sql/init.sql`.
 - Pour réinitialiser la base de données (ATTENTION supprime toutes les données) :
   ```bash
-  docker-compose down -v
-  docker-compose up --build
+  docker-compose -f docker-compose.dev.yml up
+  docker compose down --volumes --remove-orphans
