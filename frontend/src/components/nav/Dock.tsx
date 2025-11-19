@@ -6,6 +6,7 @@ const dockItems = [
     { to: "/dashboard", label: "Dashboard" },
     { to: "/vehicles", label: "Véhicules" },
     { to: "/trips", label: "Trajets" },
+    { to: "/mode2vie", label: "Mode de vie" },
     { to: "/profile", label: "Profil" },
 ];
 

@@ -30,7 +30,7 @@ type FormData = {
   };
 };
 
-const LifestyleCarbonFootprint = () => {
+const LifestylePage = () => {
   const [formData, setFormData] = useState<FormData>({
     housing: {
       type: 'appartement',
@@ -398,4 +398,4 @@ const LifestyleCarbonFootprint = () => {
   );
 };
 
-export default LifestyleCarbonFootprint;
+export default LifestylePage;
