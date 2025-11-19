@@ -6,6 +6,7 @@ import {notFoundHandler, errorHandler} from './middlewares/errorHandler';
 import { requestLogger } from './middlewares/login';
 import { cors } from './middlewares/cors';
 import authRoutes from './routes/auth';
+import routerProduits from './routes/ProduitRouter';
 
 const app = express();
 
@@ -14,7 +15,7 @@ app.use(requestLogger);           // Log les requêtes
 app.use(cors);                    // Configure CORS
 
 app.use('/api/auth', authRoutes);
-
+app.use('/api/produits', routerProduits);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

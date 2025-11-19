@@ -3,15 +3,15 @@ import { Router } from 'express';
 import { getProduits, getProduit, createNewProduit, updateExistingProduit, deleteExistingProduit } from '../controller/ProduitController';
 import { authenticate } from '../middlewares/auth'; 
 
-const router = Router();
+const routerProduits = Router();
 
 // Routes publiques
-router.get('/', getProduits);
-router.get('/:id', getProduit);
+routerProduits.get('/', getProduits);
+routerProduits.get('/:id', getProduit);
 
 // Routes protégées
-router.post('/', authenticate, createNewProduit);
-router.put('/:id', authenticate, updateExistingProduit);
-router.delete('/:id', authenticate, deleteExistingProduit);
+routerProduits.post('/', authenticate, createNewProduit);
+routerProduits.put('/:id', authenticate, updateExistingProduit);
+routerProduits.delete('/:id', authenticate, deleteExistingProduit);
 
-export default router;
+export default routerProduits;
