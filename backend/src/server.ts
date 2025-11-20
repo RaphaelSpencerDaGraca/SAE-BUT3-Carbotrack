@@ -3,9 +3,11 @@ import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth';
 import { testConnection } from './config/db';
+import app from './app';
+//const app = express();
 import vehiclesRoutes from './routes/vehicles';
 
-const app = express();
+
 
 
 app.use(express.json());
