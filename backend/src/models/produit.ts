@@ -5,16 +5,16 @@ import pool from "../config/db";
 export type ProduitSource = 'Base Carbone' | 'Open Food Facts' | 'Manuel';
 
 export interface IProduit {
-    id: number;
-    nom: string;
-    categorie: string;
-    sousCategorie: string;
-    emissionCO2ParUnite: number;
-    unite: string;
-    source: ProduitSource;
-    identifiantSource: string;
-    description: string;
-    dateMaj: Date;
+  id: number;
+  nom: string;
+  categorie: string;
+  sous_categorie: string;
+  emission_co2_par_unite: number;
+  unite: string;
+  source: string;
+  identifiant_source: string;
+  description: string;
+  date_maj: string;
 }
 
 // Méthodes pour interagir avec la base de données
@@ -28,7 +28,7 @@ export const createProduit = async (produit: Omit<IProduit, 'id' | 'dateMaj'>): 
         `INSERT INTO produit(nom, categorie, sous_categorie, emission_co2_par_unite, unite, source, identifiant_source, description)
          VALUES($1, $2, $3, $4, $5, $6, $7, $8)
          RETURNING *`,
-        [produit.nom, produit.categorie, produit.sousCategorie, produit.emissionCO2ParUnite, produit.unite, produit.source, produit.identifiantSource, produit.description]
+        [produit.nom, produit.categorie, produit.sous_categorie, produit.emission_co2_par_unite, produit.unite, produit.source, produit.identifiant_source, produit.description]
     );
     return res.rows[0];
 };

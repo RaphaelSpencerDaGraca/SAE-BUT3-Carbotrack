@@ -23,8 +23,8 @@ export const SectionCard: React.FC<SectionCardProps> = ({
   onQuantiteChange,
 }) => {
   return (
-    <div className="p-4 border rounded-lg shadow-sm">
-      <h3 className="font-semibold mb-2">{title}</h3>
+    <div className="rounded-lg border border-slate-800 bg-slate-900/30 p-4">
+      <h3 className="font-medium text-slate-100 mb-3">{title}</h3>
       <ProduitSelector
         produits={produits}
         categorie={categorie}

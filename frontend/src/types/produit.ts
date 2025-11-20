@@ -5,11 +5,11 @@ export interface IProduit {
   id: number;
   nom: string;
   categorie: string;
-  sousCategorie: string;
-  emissionCO2ParUnite: number;
+  sous_categorie: string;
+  emission_co2_par_unite: number;
   unite: string;
-  source: ProduitSource;
-  identifiantSource: string;
+  source: string;
+  identifiant_source: string;
   description: string;
-  dateMaj: Date;  
+  date_maj: string;
 }

@@ -17,7 +17,16 @@ create table if not exists user_profiles(
                               user_id UUID primary key references users(id),
                               pseudo varchar(100),
                               genre genre_enum
+                              emission_co2_lifestyle FLOAT,
+                              emission_co2_transport FLOAT
 );
+
+ALTER TABLE user_profiles
+ADD COLUMN IF NOT EXISTS emission_co2_lifestyle FLOAT,
+ADD COLUMN IF NOT EXISTS emission_co2_transport FLOAT;
+
+
+
 
 create type produit_source_enum as enum ('Base Carbone','Open Food Facts','Manuel')
 --Table des produits

@@ -9,7 +9,7 @@ export interface FormData {
     produitId: number;
     quantite: number;
   };
-  appareils: {
+  transports: {
     produitId: number;
     quantite: number;
   };

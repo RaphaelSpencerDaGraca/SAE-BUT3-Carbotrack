@@ -2,8 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth';
 import { testConnection } from './config/db';
-
-const app = express();
+import app from './app';
+//const app = express();
 
 
 app.use(express.json());
