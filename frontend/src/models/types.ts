@@ -1,3 +1,4 @@
+//frontend\src\models\types.ts
 export interface User{
     email:string;
     password:string;

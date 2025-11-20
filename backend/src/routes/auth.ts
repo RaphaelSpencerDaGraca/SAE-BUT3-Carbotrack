@@ -1,3 +1,4 @@
+//backend\src\routes\auth.ts
 import { Router } from 'express';
 import { login, register } from '../controller/auth';
 import { validateLogin, validateRegistration } from '../middlewares/validate';

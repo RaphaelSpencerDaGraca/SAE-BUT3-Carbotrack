@@ -1,3 +1,4 @@
+//frontend\src\pages\auth\register.tsx
 import { useAuth } from '@/context/authContext';
 import AuthForm from '@/components/auth/authForm';
 

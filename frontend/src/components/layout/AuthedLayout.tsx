@@ -1,3 +1,4 @@
+//frontend\src\components\layout\AuthedLayout.tsx
 import { Outlet } from 'react-router-dom';
 import AppDock from '@/components/nav/AppDock';
 

@@ -1,35 +1,6 @@
-// src/pages/vehicles.tsx
+//frontend\src\pages\vehicles.tsx
 import type { Vehicle } from '@/types/vehicle';
-import { useMemo } from 'react';
-
-const MOCK_VEHICLES: Vehicle[] = [
-    {
-        id: '1',
-        name: 'Clio IV',
-        plate: 'AB-123-CD',
-        type: 'Citadine',
-        fuelType: 'essence',
-        consumptionLPer100: 6.2,
-        createdAt: '2025-01-10T10:00:00Z',
-    },
-    {
-        id: '2',
-        name: 'Tesla Model 3',
-        plate: 'EV-456-ZE',
-        type: 'Berline',
-        fuelType: 'electrique',
-        createdAt: '2025-01-15T15:30:00Z',
-    },
-    {
-        id: '3',
-        name: '308 BlueHDi',
-        plate: 'CD-789-EF',
-        type: 'Compacte',
-        fuelType: 'diesel',
-        consumptionLPer100: 4.9,
-        createdAt: '2025-01-20T09:15:00Z',
-    },
-];
+import { useEffect, useState } from 'react';
 
 function fuelLabel(fuel: Vehicle['fuelType']): string {
     switch (fuel) {
@@ -49,8 +20,56 @@ function fuelLabel(fuel: Vehicle['fuelType']): string {
 }
 
 function VehiclesPage() {
-    // plus tard, ici tu mettras un useEffect + appel API
-    const vehicles = useMemo(() => MOCK_VEHICLES, []);
+    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const controller = new AbortController();
+
+        async function fetchVehicles() {
+            try {
+                setLoading(true);
+                setError(null);
+
+                const res = await fetch(`/api/vehicles`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // Si tu utilises un token :
+                        // 'Authorization': `Bearer ${token}`,
+                    },
+                    signal: controller.signal,
+                });
+
+                if (!res.ok) {
+                    throw new Error(`Erreur HTTP ${res.status}`);
+                }
+
+                const data = (await res.json()) as Vehicle[];
+                setVehicles(data);
+            } catch (err: any) {
+                if (err?.name === 'AbortError') return;
+                console.error('Erreur lors du chargement des véhicules :', err);
+                setError('Impossible de charger vos véhicules pour le moment.');
+                setVehicles([]); // on laisse une liste vide en cas d’erreur
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchVehicles();
+
+        return () => controller.abort();
+    }, []);
+
+    const vehicleCount = vehicles.length;
+    const distinctTypes = new Set(
+        vehicles.map((v) => v.type || 'Autre'),
+    ).size;
+    const distinctFuels = new Set(
+        vehicles.map((v) => fuelLabel(v.fuelType)),
+    ).size;
 
     return (
         <main className="min-h-screen bg-slate-950 text-slate-50 px-4 pb-24 pt-6">
@@ -82,17 +101,27 @@ function VehiclesPage() {
                 <section className="grid gap-4 md:grid-cols-3">
                     <SummaryCard
                         label="Véhicules suivis"
-                        value={vehicles.length.toString()}
+                        value={
+                            loading ? '...' : vehicleCount.toString()
+                        }
                         helper="Nombre total configuré"
                     />
                     <SummaryCard
                         label="Types différents"
-                        value={new Set(vehicles.map((v) => v.type || 'Autre')).size.toString()}
+                        value={
+                            loading
+                                ? '...'
+                                : distinctTypes.toString()
+                        }
                         helper="Citadine, SUV, etc."
                     />
                     <SummaryCard
                         label="Types de carburant"
-                        value={new Set(vehicles.map((v) => fuelLabel(v.fuelType))).size.toString()}
+                        value={
+                            loading
+                                ? '...'
+                                : distinctFuels.toString()
+                        }
                         helper="Essence, Diesel, Électrique…"
                     />
                 </section>
@@ -104,16 +133,40 @@ function VehiclesPage() {
                             Liste des véhicules
                         </h2>
                         <p className="text-xs text-slate-500">
-                            {vehicles.length === 0
-                                ? 'Aucun véhicule pour le moment.'
-                                : `${vehicles.length} véhicule${vehicles.length > 1 ? 's' : ''}`}
+                            {loading
+                                ? 'Chargement des véhicules…'
+                                : error
+                                    ? 'Erreur de chargement'
+                                    : vehicleCount === 0
+                                        ? 'Aucun véhicule pour le moment.'
+                                        : `${vehicleCount} véhicule${vehicleCount > 1 ? 's' : ''}`}
                         </p>
                     </div>
 
                     <div className="mt-4 divide-y divide-slate-800">
-                        {vehicles.map((vehicle) => (
-                            <VehicleRow key={vehicle.id} vehicle={vehicle} />
-                        ))}
+                        {loading && (
+                            <p className="py-3 text-sm text-slate-400">
+                                Chargement des véhicules…
+                            </p>
+                        )}
+
+                        {!loading && error && (
+                            <p className="py-3 text-sm text-red-300">
+                                {error}
+                            </p>
+                        )}
+
+                        {!loading && !error && vehicles.length === 0 && (
+                            <p className="py-3 text-sm text-slate-400">
+                                Aucun véhicule pour le moment.
+                            </p>
+                        )}
+
+                        {!loading &&
+                            !error &&
+                            vehicles.map((vehicle) => (
+                                <VehicleRow key={vehicle.id} vehicle={vehicle} />
+                            ))}
                     </div>
                 </section>
             </div>
@@ -131,7 +184,9 @@ function SummaryCard({ label, value, helper }: SummaryCardProps) {
     return (
         <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
             <p className="text-xs text-slate-400">{label}</p>
-            <p className="mt-2 text-2xl font-semibold text-slate-50">{value}</p>
+            <p className="mt-2 text-2xl font-semibold text-slate-50">
+                {value}
+            </p>
             <p className="mt-1 text-xs text-emerald-300">{helper}</p>
         </div>
     );
@@ -146,7 +201,9 @@ function VehicleRow({ vehicle }: VehicleRowProps) {
         <div className="flex flex-col gap-2 py-3 md:flex-row md:items-center md:justify-between">
             <div>
                 <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-slate-100">{vehicle.name}</p>
+                    <p className="text-sm font-medium text-slate-100">
+                        {vehicle.name}
+                    </p>
                     {vehicle.plate && (
                         <span className="rounded-full border border-slate-700 bg-slate-900/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-300">
               {vehicle.plate}

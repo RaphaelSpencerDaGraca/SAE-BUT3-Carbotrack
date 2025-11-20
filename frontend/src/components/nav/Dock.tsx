@@ -1,3 +1,4 @@
+//frontend\src\components\nav\Dock.tsx
 'use client';
 
 import { NavLink } from "react-router-dom";

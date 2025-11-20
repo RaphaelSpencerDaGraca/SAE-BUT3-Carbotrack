@@ -1,3 +1,4 @@
+//backend\src\models\user.ts
 import pool from "../config/db";
 
 export interface DBUser {
