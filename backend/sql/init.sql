@@ -23,22 +23,22 @@ create table if not exists vehicles (
 
 -- Table des trajets
 create table if not exists trips (
-                                     id serial primary key,
-                                     user_id uuid references users(id) on delete cascade,
-                                     date date not null,
-                                     from_city varchar(255) not null,
-                                     to_city varchar(255) not null,
-                                     distance_km numeric(10,1) not null,
-                                     vehicle_name varchar(255) not null,
-                                     co2_kg numeric(10,2) not null,
-                                     tag varchar(255),
-                                     created_at timestamp default now()
+                                 id serial primary key,
+                                 user_id uuid references users(id) on delete cascade,
+                                 vehicle_id serial not null references vehicles,
+                                 date date not null,
+                                 from_city varchar(255) not null,
+                                 to_city varchar(255) not null,
+                                 distance_km numeric(10,1) not null,
+                                 co2_kg numeric(10,2) not null,
+                                 tag varchar(255),
+                                 created_at timestamp default now()
 );
 
 create type genre_enum as enum ('Homme','Femme','Autre');
 --Table des profils utilisateurs
 create table if not exists user_profiles(
-                              user_id UUID primary key references users(id),
+                              user_id UUID primary key references users(id) on delete cascade,
                               pseudo varchar(100),
                               genre genre_enum,
                               emission_co2_lifestyle FLOAT,
