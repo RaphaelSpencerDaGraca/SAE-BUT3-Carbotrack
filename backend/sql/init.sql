@@ -1,4 +1,3 @@
-
 -- /backend/sql/init.sql
 -- Table des utilisateurs
 create table if not exists users (
@@ -36,25 +35,17 @@ create table if not exists trips (
                                      created_at timestamp default now()
 );
 
-
 create type genre_enum as enum ('Homme','Femme','Autre');
 --Table des profils utilisateurs
 create table if not exists user_profiles(
                               user_id UUID primary key references users(id),
                               pseudo varchar(100),
-                              genre genre_enum
+                              genre genre_enum,
                               emission_co2_lifestyle FLOAT,
                               emission_co2_transport FLOAT
 );
 
-ALTER TABLE user_profiles
-ADD COLUMN IF NOT EXISTS emission_co2_lifestyle FLOAT,
-ADD COLUMN IF NOT EXISTS emission_co2_transport FLOAT;
-
-
-
-
-create type produit_source_enum as enum ('Base Carbone','Open Food Facts','Manuel')
+create type produit_source_enum as enum ('Base Carbone','Open Food Facts','Manuel');
 --Table des produits
 create table if not exists produit (
     id SERIAL PRIMARY KEY,
