@@ -1,40 +1,34 @@
-//frontend\src\pages\trips.tsx
+// frontend/src/pages/trips.tsx
+import { useEffect, useState } from 'react';
 import type { Trip } from '../../../shared/types.trip.ts';
 
-const MOCK_TRIPS: Trip[] = [
-    {
-        id: 1,
-        date: "2025-01-10",
-        from: "PAPAPAPA",
-        to: "Orléans",
-        distanceKm: 132,
-        vehicleName: "Clio Diesel",
-        co2Kg: 24.5,
-        tag: "Domicile → Mission",
-    },
-    {
-        id: 2,
-        date: "2025-01-12",
-        from: "Orléans",
-        to: "Paris",
-        distanceKm: 135,
-        vehicleName: "Clio Diesel",
-        co2Kg: 25.1,
-        tag: "Retour",
-    },
-    {
-        id: 3,
-        date: "2025-01-15",
-        from: "Paris",
-        to: "IUT Paris",
-        distanceKm: 8,
-        vehicleName: "Tram / Métro",
-        co2Kg: 1.2,
-        tag: "Trajet quotidien",
-    },
-];
-
 const TripsPage = () => {
+    const [trips, setTrips] = useState<Trip[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchTrips = async () => {
+            try {
+                const res = await fetch('http://localhost:3001/api/trips');
+
+                if (!res.ok) {
+                    throw new Error('Erreur lors du chargement des trajets');
+                }
+
+                const data: Trip[] = await res.json();
+                setTrips(data);
+            } catch (err) {
+                console.error('Erreur fetch /api/trips :', err);
+                setError(err instanceof Error ? err.message : 'Erreur inconnue');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchTrips();
+    }, []);
+
     return (
         <main className="min-h-screen bg-slate-950 text-slate-50 px-4 pb-24 pt-6">
             <div className="mx-auto max-w-5xl space-y-6">
@@ -79,25 +73,41 @@ const TripsPage = () => {
                     </div>
                 </section>
 
-                {/* Liste des trajets (map) */}
+                {/* Liste des trajets */}
                 <section className="rounded-2xl border border-slate-800 bg-slate-900/40">
                     <div className="border-b border-slate-800 px-4 py-3 flex items-center justify-between">
                         <h2 className="text-sm font-medium text-slate-100">
                             Trajets enregistrés
                         </h2>
-                        <span className="text-xs text-slate-500">
-              {MOCK_TRIPS.length} trajet(s)
-            </span>
+
+                        {loading ? (
+                            <span className="text-xs text-slate-500">Chargement...</span>
+                        ) : error ? (
+                            <span className="text-xs text-red-400">Erreur</span>
+                        ) : (
+                            <span className="text-xs text-slate-500">
+                {trips.length} trajet(s)
+              </span>
+                        )}
                     </div>
 
-                    {MOCK_TRIPS.length === 0 ? (
+                    {/* États : chargement / erreur / vide / liste */}
+                    {loading ? (
+                        <div className="px-4 py-10 text-center text-sm text-slate-400">
+                            Chargement des trajets...
+                        </div>
+                    ) : error ? (
+                        <div className="px-4 py-10 text-center text-sm text-red-400">
+                            {error}
+                        </div>
+                    ) : trips.length === 0 ? (
                         <div className="px-4 py-10 text-center text-sm text-slate-400">
                             Aucun trajet pour le moment. Ajoute ton premier trajet pour voir
                             apparaître ton historique ici.
                         </div>
                     ) : (
                         <ul className="divide-y divide-slate-800">
-                            {MOCK_TRIPS.map((trip) => (
+                            {trips.map((trip) => (
                                 <li
                                     key={trip.id}
                                     className="px-4 py-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between"
