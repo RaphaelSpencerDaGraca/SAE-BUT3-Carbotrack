@@ -4,6 +4,7 @@ import cors from 'cors';
 import authRoutes from './routes/auth';
 import { testConnection } from './config/db';
 import vehiclesRoutes from './routes/vehicles';
+import tripsRoutes from './routes/routes.trips';
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use(cors({
 
 app.use('/api/auth', authRoutes);
 app.use('/api/vehicles', vehiclesRoutes);
+app.use('/api/trips', tripsRoutes);
 
 const PORT = 3001;
 app.listen(PORT, async () => {

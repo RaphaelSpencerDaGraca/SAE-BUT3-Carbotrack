@@ -38,7 +38,7 @@ PS: Pensez à ouvrir une nouvelle fenêtre de terminale dans l'IDE pour exécute
 → Le frontend sera disponible sur http://localhost:5173.
 → Le backend sera disponible sur http://localhost:3000.
 
-Pendant le développement vous n'aurez pas besoin de relancer la commande npm run dev les changement seront implémentés automatiquement
+Pendant le développement vous aurez parfois besoin de faire Ctrl+C dans l'invite de commande puis de relancer la commande npm run dev
 
 3. **Arrêter la base données**
    ```bash
