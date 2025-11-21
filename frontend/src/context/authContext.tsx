@@ -44,7 +44,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const storedUser = localStorage.getItem('user');
             if (token && storedUser) {
                 try {
-                    await api.get('/api/auth/me');
+                    await api.get('/auth/me');
                     setUser(JSON.parse(storedUser));
                 } catch (error) {
                     console.error('Token invalide:', error);
