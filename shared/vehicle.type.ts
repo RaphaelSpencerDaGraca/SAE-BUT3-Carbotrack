@@ -1,4 +1,4 @@
-// frontend/src/types/vehicle.ts
+// shared/vehicle.type.ts
 
 export type FuelType = 'essence' | 'diesel' | 'electrique' | 'hybride' | 'gpl' | 'autre';
 

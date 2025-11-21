@@ -1,5 +1,5 @@
 //frontend\src\pages\vehicles.tsx
-import type { Vehicle } from '@/types/vehicle';
+import type { Vehicle } from '../../../shared/vehicle.type.ts';
 import { useEffect, useState } from 'react';
 
 function fuelLabel(fuel: Vehicle['fuelType']): string {

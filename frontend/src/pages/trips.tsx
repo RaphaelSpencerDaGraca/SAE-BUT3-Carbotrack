@@ -1,6 +1,6 @@
 // frontend/src/pages/trips.tsx
 import { useEffect, useState } from 'react';
-import type { Trip } from '../../../shared/types.trip.ts';
+import type { Trip } from '../../../shared/trip.type.ts';
 
 const TripsPage = () => {
     const [trips, setTrips] = useState<Trip[]>([]);

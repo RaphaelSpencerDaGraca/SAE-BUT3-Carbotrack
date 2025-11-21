@@ -1,3 +1,4 @@
+//shared/trip.type.ts
 export interface Trip {
     id: number;
     userId?: string;
