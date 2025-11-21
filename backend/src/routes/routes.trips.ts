@@ -5,20 +5,25 @@ import pool from '../config/db'; // même import que dans vehicles.ts
 
 const router = Router();
 
+// GET /api/trips
 router.get('/', async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT
-                id,
-                to_char(date, 'YYYY-MM-DD') AS "date",
-                from_city AS "from",
-                to_city AS "to",
-                distance_km::float AS "distanceKm",
-                vehicle_name AS "vehicleName",
-                co2_kg::float AS "co2Kg",
-                tag
-            FROM trips
-            ORDER BY date DESC, id DESC
+                t.id,
+                t.user_id AS "userId",
+                t.vehicle_id AS "vehicleId",
+                to_char(t.date, 'YYYY-MM-DD') AS "date",
+                t.from_city AS "fromCity",
+                t.to_city AS "toCity",
+                t.distance_km::float AS "distanceKm",
+                    v.name AS "vehicleName",
+                t.co2_kg::float AS "co2Kg",
+                    t.tag,
+                t.created_at AS "createdAt"
+            FROM trips t
+                     LEFT JOIN vehicles v ON v.id = t.vehicle_id
+            ORDER BY t.date DESC, t.id DESC
         `);
 
         res.json(result.rows);

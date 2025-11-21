@@ -1,4 +1,3 @@
-// shared/types.trip.ts
 export interface Trip {
     id: number;
     userId?: string;
@@ -7,6 +6,7 @@ export interface Trip {
     fromCity: string;
     toCity: string;
     distanceKm: number;
+    vehicleName?: string;
     co2Kg: number;
     tag?: string;
     createdAt?: string;
