@@ -1,11 +1,11 @@
 // src/routes/vehicles.ts
 
 import { Router } from 'express';
-import { pool } from '../db';
+import pool from "../config/db";
 
-const router = Router();
+const routerVehicles = Router();
 
-router.get('/', async (req, res) => {
+routerVehicles.get('/', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM vehicles');
         res.json(result.rows);
@@ -15,4 +15,4 @@ router.get('/', async (req, res) => {
     }
 });
 
-export default router;
+export default routerVehicles;
