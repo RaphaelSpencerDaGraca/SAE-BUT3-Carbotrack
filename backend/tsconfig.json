@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "rootDir": "./src",
+    // "rootDir": "./src", pas de rootDir pour l'instant à cause de shared qui est en dehors
     "outDir": "./dist",
     "baseUrl": ".",
 
