@@ -22,6 +22,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/produits', routerProduits);
 app.use('/api/vehicles', vehiclesRoutes);
 app.use('/api/trips', tripsRoutes);
+app.use('/api/debug', debugRoutes);
+
 
 if (process.env.NODE_ENV !== 'production') {     // route accessible uniquement en dev
     app.use('/api/debug', debugRoutes);
