@@ -1,17 +1,20 @@
 //frontend\src\components\nav\Dock.tsx
-'use client';
+"use client";
 
 import { NavLink } from "react-router-dom";
+import { useTranslation } from "@/language/useTranslation";
 
 const dockItems = [
-    { to: "/dashboard", label: "Dashboard" },
-    { to: "/vehicles", label: "Véhicules" },
-    { to: "/trips", label: "Trajets" },
-    { to: "/mode2vie", label: "Mode de vie" },
-    { to: "/profile", label: "Profil" },
+    { to: "/dashboard", key: "nav.dashboard" },
+    { to: "/vehicles", key: "nav.vehicles" },
+    { to: "/trips", key: "nav.trips" },
+    { to: "/mode2vie", key: "nav.lifestyle" },
+    { to: "/profile", key: "nav.profile" }
 ];
 
 function Dock() {
+    const { t } = useTranslation();
+
     return (
         <nav className="fixed bottom-4 left-1/2 z-30 -translate-x-1/2">
             <div className="flex gap-2 rounded-full border border-slate-800/80 bg-slate-900/90 px-3 py-2 shadow-lg shadow-black/40 backdrop-blur-sm">
@@ -25,11 +28,11 @@ function Dock() {
                                 "focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:ring-offset-2 focus:ring-offset-slate-950",
                                 isActive
                                     ? "bg-emerald-500 text-slate-950 shadow"
-                                    : "text-slate-300 hover:bg-slate-800/80",
+                                    : "text-slate-300 hover:bg-slate-800/80"
                             ].join(" ")
                         }
                     >
-                        {item.label}
+                        {t(item.key)}
                     </NavLink>
                 ))}
             </div>
