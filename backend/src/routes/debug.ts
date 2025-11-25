@@ -6,13 +6,13 @@ import {
     calculateTripEmissionsKgCO2,
     FuelType
 } from '../services/co2Calculator';
+import { recalculateAllTripsCo2 } from '../services/tripsUpdater';
 
 const router = Router();
 
 /**
  * GET /api/debug/carbon
- * Exemples :
- *   /api/debug/carbon?fuelType=essence&consumption=6.5&distance=10
+ * Test "unitaire" du co2Calculator
  */
 router.get('/carbon', (req: Request, res: Response) => {
     const fuelType = (req.query.fuelType as FuelType) || 'essence';
@@ -56,6 +56,22 @@ router.get('/carbon', (req: Request, res: Response) => {
         gCO2ePerKm: perKm,
         tripKgCO2e: tripKg
     });
+});
+
+
+ // Déclenche l'update de co2_kg pour tous les trips existants.
+ // Logique métier externalisée dans services/tripCo2Updater.ts
+
+router.post('/recalculate-trips-co2', async (req: Request, res: Response) => {
+    try {
+        const stats = await recalculateAllTripsCo2();
+        return res.json(stats);
+    } catch (error) {
+        console.error('Erreur recalcul CO2 trips :', error);
+        return res
+            .status(500)
+            .json({ error: 'Erreur lors du recalcul des émissions des trajets' });
+    }
 });
 
 export default router;
