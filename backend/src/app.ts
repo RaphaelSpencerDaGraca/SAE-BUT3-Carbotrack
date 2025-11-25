@@ -10,6 +10,7 @@ import authRoutes from './routes/auth';
 import routerProduits from './routes/ProduitRouter';
 import vehiclesRoutes from "./routes/vehicles";
 import tripsRoutes from "./routes/routes.trips";
+import debugRoutes from "./routes/debug";
 
 const app = express();
 
@@ -21,6 +22,12 @@ app.use('/api/auth', authRoutes);
 app.use('/api/produits', routerProduits);
 app.use('/api/vehicles', vehiclesRoutes);
 app.use('/api/trips', tripsRoutes);
+app.use('/api/debug', debugRoutes);
+
+
+if (process.env.NODE_ENV !== 'production') {     // route accessible uniquement en dev
+    app.use('/api/debug', debugRoutes);
+}
 
 app.use(notFoundHandler);
 app.use(errorHandler);

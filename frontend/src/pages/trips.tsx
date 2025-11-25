@@ -1,4 +1,7 @@
 // frontend/src/pages/trips.tsx
+import { useEffect, useState } from 'react';
+import type { Trip } from '../../../shared/trip.type.ts';
+
 import { useTranslation } from "@/language/useTranslation";
 
 type Trip = {
@@ -113,7 +116,7 @@ const TripsPage = () => {
                                 >
                                     <div className="space-y-1">
                                         <p className="text-sm font-medium text-slate-100">
-                                            {trip.from} → {trip.to}
+                                            {trip.fromCity} → {trip.toCity}
                                         </p>
                                         <p className="text-xs text-slate-400">
                                             {trip.date} · {trip.distanceKm} km · {trip.vehicleName}

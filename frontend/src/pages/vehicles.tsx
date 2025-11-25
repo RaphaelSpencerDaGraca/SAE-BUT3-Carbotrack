@@ -1,6 +1,7 @@
 //frontend\src\pages\vehicles.tsx
-import type { Vehicle } from "@/types/vehicle";
-import { useEffect, useState } from "react";
+import type { Vehicle } from '../../../shared/vehicle.type.ts';
+import { useEffect, useState } from 'react';
+
 import { useTranslation } from "@/language/useTranslation";
 
 type SummaryCardProps = {
