@@ -13,6 +13,7 @@ import tripsRoutes from "./routes/routes.trips";
 import debugRoutes from "./routes/debug";
 import routerTypeChauffage from './routes/typeChauffage';
 import logementRoutes from './routes/logementRouter';
+import userProfileRouter from './routes/userProfileRouter';
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use('/api/trips', tripsRoutes);
 app.use('/api/debug', debugRoutes);
 app.use('/api/type_chauffage',routerTypeChauffage)
 app.use('/api/logements', logementRoutes);
+app.use('/api/user_profiles', userProfileRouter);
 
 if (process.env.NODE_ENV !== 'production') {     // route accessible uniquement en dev
     app.use('/api/debug', debugRoutes);
