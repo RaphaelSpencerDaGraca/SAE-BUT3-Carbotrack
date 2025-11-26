@@ -1,3 +1,4 @@
+//frontend\src\components\calcLifestyle\types.ts
 interface FormDataProduit {
   produitId: number;
   quantite: number;
@@ -15,10 +16,15 @@ export interface FormData {
   loisirs: FormDataProduit;
 }
 
-
-
-
 export interface CalculationResult {
   totalKgCO2: number;
   breakdown: Record<string, number>;
+}
+
+
+export interface LogementInput {
+  user_id?: string;
+  superficie: number;
+  nombre_pieces: number;
+  type_chauffage_id: number;
 }

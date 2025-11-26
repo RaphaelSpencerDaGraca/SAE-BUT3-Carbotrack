@@ -1,8 +1,15 @@
 import { Router } from 'express';
-import { getTypeChauffage } from '../controller/typeChauffageController';
+import { getTypeChauffage,getAllTypesChauffageController } from '../controller/typeChauffageController';
 
-const routerTypeChauffage = Router();
+const router = Router();
 
-routerTypeChauffage.get('/:id', getTypeChauffage);
+/**
+ * Routes:
+ * GET /api/types-chauffage       -> list all types de chauffage
+ * GET /api/types-chauffage/:id   -> get type de chauffage by id
+ */
 
-export default routerTypeChauffage;
+router.get('/', getAllTypesChauffageController);
+router.get('/:id', getTypeChauffage);
+
+export default router;
