@@ -8,7 +8,15 @@ create table if not exists users (
                        is_active boolean default true,
                        consent_rgpd boolean default false
 );
-
+create type genre_enum as enum ('Homme','Femme','Autre');
+--Table des profils utilisateurs
+create table if not exists user_profiles(
+                              user_id UUID primary key references users(id) on delete cascade,
+                              pseudo varchar(100),
+                              genre genre_enum,
+                              emission_co2_lifestyle FLOAT,
+                              emission_co2_transport FLOAT
+);
 -- Table des véhicules
 create table if not exists vehicles (
                                         id serial primary key,
@@ -35,15 +43,8 @@ create table if not exists trips (
                                  created_at timestamp default now()
 );
 
-create type genre_enum as enum ('Homme','Femme','Autre');
---Table des profils utilisateurs
-create table if not exists user_profiles(
-                              user_id UUID primary key references users(id) on delete cascade,
-                              pseudo varchar(100),
-                              genre genre_enum,
-                              emission_co2_lifestyle FLOAT,
-                              emission_co2_transport FLOAT
-);
+
+
 
 create type produit_source_enum as enum ('Base Carbone','Open Food Facts','Manuel');
 --Table des produits
@@ -58,4 +59,14 @@ create table if not exists produit (
     identifiant_source VARCHAR(100), 
     description TEXT,
     date_maj TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+--Table des logements
+
+
+
+--Table des types de chauffage
+create table if not exists type_chauffage(
+    id SERIAL PRIMARY KEY,
+    type_chauffage VARCHAR(100) NOT NULL
 );

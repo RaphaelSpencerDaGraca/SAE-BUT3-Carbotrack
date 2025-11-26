@@ -45,7 +45,7 @@ export const ProduitSelector: React.FC<ProduitSelectorProps> = ({
               value={quantite}
               onChange={(e) => onQuantiteChange(Number(e.target.value))}
               min="0"
-              step="0.1"
+              step="1"
               className="w-20 rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-sm text-slate-100 focus:outline-none focus:ring-1 focus:ring-brand-500"
             />
             <span className="text-xs text-slate-400">{selectedProduit.unite}</span>

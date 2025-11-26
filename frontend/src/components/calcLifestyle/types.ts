@@ -1,23 +1,22 @@
-import { IProduit, ProduitSource } from '../../types/produit';
+interface FormDataProduit {
+  produitId: number;
+  quantite: number;
+}
+
+interface FormDataLogement {
+  logementid: number;
+  superficie: number;
+  isolation: number;
+}
 
 export interface FormData {
-  logement: {
-    produitId: number;
-    quantite: number;
-  };
-  alimentation: {
-    produitId: number;
-    quantite: number;
-  };
-  transports: {
-    produitId: number;
-    quantite: number;
-  };
-  loisirs: {
-    produitId: number;
-    quantite: number;
-  };
+  logement: FormDataLogement;
+  alimentation: FormDataProduit;
+  loisirs: FormDataProduit;
 }
+
+
+
 
 export interface CalculationResult {
   totalKgCO2: number;

@@ -3,12 +3,7 @@ import React, { useState } from 'react';
 import { SectionCard } from './SectionCard';
 import { ResultDisplay } from './ResultDisplay';
 import { IProduit } from '../../types/produit';
-
-interface FormData {
-  logement: { produitId: number; quantite: number };
-  alimentation: { produitId: number; quantite: number };
-  loisirs: { produitId: number; quantite: number };
-}
+import { FormData } from './types';
 
 interface LifestyleFormProps {
   produits: IProduit[];
@@ -16,7 +11,7 @@ interface LifestyleFormProps {
 
 export const LifestyleForm: React.FC<LifestyleFormProps> = ({ produits }) => {
   const [formData, setFormData] = useState<FormData>({
-    logement: { produitId: 0, quantite: 1 },
+    logement: { logementid: 0, superficie: 1, isolation: 1 },
     alimentation: { produitId: 0, quantite: 1 },
     loisirs: { produitId: 0, quantite: 1 },
   });
@@ -28,7 +23,17 @@ export const LifestyleForm: React.FC<LifestyleFormProps> = ({ produits }) => {
 
   const calculateEmissions = () => {
     const calculateForSection = (section: keyof FormData) => {
-      const { produitId, quantite } = formData[section];
+      const sectionData = formData[section];
+      
+      // Handle logement section differently
+      if (section === 'logement') {
+        const logement = sectionData as any; // Type assertion needed due to structural mismatch
+        const produit = produits.find(p => p.id === logement.logementid);
+        return produit ? produit.emission_co2_par_unite * 1 : 0;
+      }
+      
+      // Handle alimentation and loisirs
+      const { produitId, quantite } = sectionData as any;
       const produit = produits.find(p => p.id === produitId);
       return produit ? produit.emission_co2_par_unite * quantite : 0;
     };
