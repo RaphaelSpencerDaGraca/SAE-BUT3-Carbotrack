@@ -1,25 +1,35 @@
-import { IProduit, ProduitSource } from '../../types/produit';
+//frontend\src\components\calcLifestyle\types.ts
+interface FormDataProduit {
+  produitId: number;
+  quantite: number;
+}
+
+interface FormDataLogement {
+  logementid: number;
+  superficie: number;
+  isolation: number;
+  nombre_pieces: number;
+}
+
+
 
 export interface FormData {
-  logement: {
-    produitId: number;
-    quantite: number;
-  };
-  alimentation: {
-    produitId: number;
-    quantite: number;
-  };
-  transports: {
-    produitId: number;
-    quantite: number;
-  };
-  loisirs: {
-    produitId: number;
-    quantite: number;
-  };
+  logement: FormDataLogement;
+  alimentation: FormDataProduit;
+  loisirs: FormDataProduit;
 }
 
 export interface CalculationResult {
   totalKgCO2: number;
   breakdown: Record<string, number>;
+}
+
+
+// frontend/src/components/calcLifestyle/types.ts
+export interface LogementInput {
+  user_id: string;
+  superficie: number;
+  nombre_pieces: number;
+  type_chauffage_id: number;
+  classe_isolation: string;
 }
