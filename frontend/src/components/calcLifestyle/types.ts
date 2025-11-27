@@ -8,7 +8,10 @@ interface FormDataLogement {
   logementid: number;
   superficie: number;
   isolation: number;
+  nombre_pieces: number;
 }
+
+
 
 export interface FormData {
   logement: FormDataLogement;
@@ -22,9 +25,11 @@ export interface CalculationResult {
 }
 
 
+// frontend/src/components/calcLifestyle/types.ts
 export interface LogementInput {
-  user_id?: string;
+  user_id: string;
   superficie: number;
   nombre_pieces: number;
   type_chauffage_id: number;
+  classe_isolation: string;
 }

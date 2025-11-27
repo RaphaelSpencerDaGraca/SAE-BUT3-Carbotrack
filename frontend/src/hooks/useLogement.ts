@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { LogementInput } from '../components/calcLifestyle/types';
-
-const API_URL = 'http://localhost:3001/api';
+import api from '../services/api';
 
 export const useLogement = () => {
   const [loading, setLoading] = useState(false);
@@ -11,22 +10,12 @@ export const useLogement = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_URL}/logements/user/${userId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ ...logement, user_id: userId }),
+      const response = await api.put(`/logements/user/${userId}`, {
+        ...logement,
+        user_id: userId,
       });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors de la sauvegarde du logement');
-      }
-
-      const data = await response.json();
       setLoading(false);
-      return data;
+      return response.data;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erreur inconnue';
       setError(message);
@@ -39,19 +28,9 @@ export const useLogement = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_URL}/logements/user/${userId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors de la récupération du logement');
-      }
-
-      const data = await response.json();
+      const response = await api.get(`/logements/user/${userId}`);
       setLoading(false);
-      return data;
+      return response.data;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erreur inconnue';
       setError(message);

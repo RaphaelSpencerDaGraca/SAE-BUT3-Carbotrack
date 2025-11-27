@@ -2,18 +2,23 @@
 import { Request, Response } from 'express';
 import { getLogementById,getLogementByUserId, createLogement, updateLogement, deleteLogement, getAllLogements} from '../models/logement';
 import { logement as LogementType } from '../../../shared/logement';
+import { validationResult } from 'express-validator/lib/validation-result';
 
 export const createLogementController = async (req: Request, res: Response) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
     const logementData: LogementType = req.body;
     const created = await createLogement(logementData);
     return res.status(201).json(created);
   } catch (err) {
     console.error('createLogement error', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    return res.status(500).json({ error: 'Failed to create logement', details: errorMessage });
   }
 };
-
 export const getLogementByIdController = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
