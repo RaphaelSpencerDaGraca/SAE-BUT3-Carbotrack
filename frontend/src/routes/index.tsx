@@ -8,6 +8,8 @@ import TripsPage from "@/pages/trips.tsx";
 import AuthedLayout from '@/components/layout/AuthedLayout';
 import ProfilePage from "@/pages/profile.tsx";
 import LifestylePage from '@/pages/mode2vie';
+import ForgotPasswordForm from '@/components/auth/ForgotPasswordForm';
+import ResetPasswordForm from '@/components/auth/ResetPasswordForm';
 
 const AppRoutes = () => {
     return (
@@ -15,7 +17,8 @@ const AppRoutes = () => {
             {/* Pages publiques */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-
+            <Route path="/forgot-password" element={<ForgotPasswordForm />} />
+            <Route path="/reset-password" element={<ResetPasswordForm />} />
             {/* Pages connectées avec le Dock */}
             <Route element={<AuthedLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />

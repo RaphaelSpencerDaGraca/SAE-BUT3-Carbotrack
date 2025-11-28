@@ -1,4 +1,5 @@
 //backend\src\models\user.ts
+import bcrypt from "bcrypt";
 import pool from "../config/db";
 
 export interface DBUser {
@@ -40,3 +41,13 @@ export const getUserByEmail = async (email: string): Promise<DBUser | null> => {
         throw new Error(`Erreur lors de la récupération de l'utilisateur: ${error}`);
     }
 };
+
+
+export const updateUserPassword = async (userId: string, newPassword: string): Promise<void> => {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await pool.query(
+        'UPDATE users SET password_hash = $1 WHERE id = $2',
+        [hashedPassword, userId]
+    );
+};
+

@@ -1,21 +1,22 @@
-//backend\src\controller\auth.ts
+// backend/src/controller/auth.ts
 import { Request, Response } from 'express';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { createUser, getUserByEmail, DBUser } from '../models/user';
+import { createUser, getUserByEmail } from '../models/user';
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password } = req.body;
         const user = await getUserByEmail(email);
-
         if (!user || !user.password_hash) {
-            return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
+            res.status(401).json({ error: 'Email ou mot de passe incorrect' });
+            return;
         }
 
         const passwordMatch = await bcrypt.compare(password, user.password_hash);
         if (!passwordMatch) {
-            return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
+            res.status(401).json({ error: 'Email ou mot de passe incorrect' });
+            return;
         }
 
         const token = jwt.sign(
@@ -24,7 +25,7 @@ export const login = async (req: Request, res: Response) => {
             { expiresIn: '24h' }
         );
 
-        res.json({
+        res.status(200).json({
             token,
             user: {
                 id: user.id,
@@ -38,11 +39,10 @@ export const login = async (req: Request, res: Response) => {
     }
 };
 
-export const register = async (req: Request, res: Response) => {
+export const register = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password, pseudo } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
-
         const newUser = await createUser(email, hashedPassword, pseudo);
 
         const token = jwt.sign(
