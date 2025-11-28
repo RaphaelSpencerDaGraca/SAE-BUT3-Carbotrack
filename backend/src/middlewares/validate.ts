@@ -1,6 +1,7 @@
 //backend\src\middlewares\validate.ts
 import { body, validationResult, ValidationChain } from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
+import validator from 'validator';
 
 const handleValidationErrors = (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
@@ -46,4 +47,20 @@ export const validateLogin: ValidationChain[] = [
 
 export const withValidation = (validations: ValidationChain[]) => {
     return [validations, handleValidationErrors];
+};
+
+export const validatePasswordResetRequest = (req: Request, res: Response, next: NextFunction) => {
+    const { email } = req.body;
+    if (!email || !validator.isEmail(email)) {
+        return res.status(400).json({ error: 'Email invalide' });
+    }
+    next();
+};
+
+export const validatePasswordReset = (req: Request, res: Response, next: NextFunction) => {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword || newPassword.length < 6) {
+        return res.status(400).json({ error: 'Token ou mot de passe invalide' });
+    }
+    next();
 };

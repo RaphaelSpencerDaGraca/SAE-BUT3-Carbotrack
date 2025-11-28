@@ -15,4 +15,7 @@ api.interceptors.response.use(
     }
 );
 
+export const requestPasswordReset = (email: string) => api.post('/password-reset/request-password-reset', { email });
+export const resetPassword = (token: string, newPassword: string) => api.post('/password-reset/reset-password', { token, newPassword });
+
 export default api;

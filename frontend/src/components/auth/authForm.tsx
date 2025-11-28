@@ -4,6 +4,7 @@ import InputField from '../ui/inputField';
 import Button from '../ui/button';
 import Alert from '../ui/alert';
 import AuthSwitcher from './authSwitcher';
+import { Link } from 'react-router-dom';
 
 interface AuthFormProps {
     type: 'login' | 'register';
@@ -145,9 +146,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ type, onSubmit }) => {
 
                     {/* liens */}
                     <div className="mt-3 text-center">
-                        {!isRegister ? (
-                            <a href="#" className="text-sm text-green-600 hover:underline">Forgot Password?</a>
-                        ) : null}
+                        {!isRegister && (
+                            <Link to="/forgot-password" className="text-sm text-green-600 hover:underline">
+                                Mot de passe oublié ?
+                            </Link>
+                            )}
                         <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                             {isRegister ? (
                                 <>Already have an account? <a href="/login" className="text-green-600 hover:underline">Sign In</a></>
