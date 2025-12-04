@@ -8,6 +8,12 @@ const router = Router();
 // Récupérer les véhicules de l'utilisateur connecté
 router.get("/", authenticate, async (req: any, res) => {
     try {
+        if (!req.user || !req.user.userId) {
+            return res.status(401).json({ error: "Utilisateur non authentifié." });
+        }
+
+        const userId = req.user.userId;
+
         const result = await pool.query(
             `
       SELECT
@@ -23,7 +29,7 @@ router.get("/", authenticate, async (req: any, res) => {
       WHERE user_id = $1
       ORDER BY created_at DESC
       `,
-            [req.user.id]
+            [userId]
         );
 
         res.json(result.rows);
@@ -36,6 +42,12 @@ router.get("/", authenticate, async (req: any, res) => {
 // 🔹 Créer un véhicule
 router.post("/", authenticate, async (req: any, res) => {
     try {
+        if (!req.user || !req.user.userId) {
+            return res.status(401).json({ error: "Utilisateur non authentifié." });
+        }
+
+        const userId = req.user.userId;
+
         const {
             name,
             plate,
@@ -51,16 +63,16 @@ router.post("/", authenticate, async (req: any, res) => {
         }
 
         const query = `
-      INSERT INTO vehicles (
-        user_id,
-        name,
-        plate,
-        type,
-        fuel_type,
-        consumption_l_per_100
-      )
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING
+            INSERT INTO vehicles (
+                user_id,
+                name,
+                plate,
+                type,
+                fuel_type,
+                consumption_l_per_100
+            )
+            VALUES ($1, $2, $3, $4, $5, $6)
+                RETURNING
         id,
         user_id      AS "userId",
         name,
@@ -69,10 +81,10 @@ router.post("/", authenticate, async (req: any, res) => {
         fuel_type    AS "fuelType",
         consumption_l_per_100 AS "consumptionLPer100",
         created_at   AS "createdAt"
-    `;
+        `;
 
         const values = [
-            req.user.id,
+            userId,
             name,
             plate || null,
             type || null,
