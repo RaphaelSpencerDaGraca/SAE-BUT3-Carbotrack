@@ -1,55 +1,35 @@
 // frontend/src/pages/trips.tsx
 import { useEffect, useState } from 'react';
 import type { Trip } from '../../../shared/trip.type.ts';
-
-import { useTranslation } from "@/language/useTranslation";
-
-type Trip = {
-    id: number;
-    date: string;
-    from: string;
-    to: string;
-    distanceKm: number;
-    vehicleName: string;
-    co2Kg: number;
-    tagKey?: string;
-};
-
-const MOCK_TRIPS: Trip[] = [
-    {
-        id: 1,
-        date: "2025-01-10",
-        from: "Paris",
-        to: "Orléans",
-        distanceKm: 132,
-        vehicleName: "Clio Diesel",
-        co2Kg: 24.5,
-        tagKey: "trips.tag.homeToMission"
-    },
-    {
-        id: 2,
-        date: "2025-01-12",
-        from: "Orléans",
-        to: "Paris",
-        distanceKm: 135,
-        vehicleName: "Clio Diesel",
-        co2Kg: 25.1,
-        tagKey: "trips.tag.return"
-    },
-    {
-        id: 3,
-        date: "2025-01-15",
-        from: "Paris",
-        to: "IUT Paris",
-        distanceKm: 8,
-        vehicleName: "Tram / Métro",
-        co2Kg: 1.2,
-        tagKey: "trips.tag.daily"
-    }
-];
+import {useTranslation} from "@/language/useTranslation.ts";
 
 const TripsPage = () => {
     const { t } = useTranslation();
+    const [trips, setTrips] = useState<Trip[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchTrips = async () => {
+            try {
+                const res = await fetch('http://localhost:3001/api/trips');
+
+                if (!res.ok) {
+                    throw new Error('Erreur lors du chargement des trajets');
+                }
+
+                const data: Trip[] = await res.json();
+                setTrips(data);
+            } catch (err) {
+                console.error('Erreur fetch /api/trips :', err);
+                setError(err instanceof Error ? err.message : 'Erreur inconnue');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchTrips();
+    }, []);
 
     return (
         <main className="min-h-screen bg-slate-950 text-slate-50 px-4 pb-24 pt-6">
@@ -93,23 +73,40 @@ const TripsPage = () => {
                     </div>
                 </section>
 
+                {/* Liste des trajets */}
                 <section className="rounded-2xl border border-slate-800 bg-slate-900/40">
                     <div className="border-b border-slate-800 px-4 py-3 flex items-center justify-between">
                         <h2 className="text-sm font-medium text-slate-100">
                             {t("trips.list.title")}
                         </h2>
-                        <span className="text-xs text-slate-500">
-              {MOCK_TRIPS.length} {t("trips.list.countSuffix")}
-            </span>
+
+                        {loading ? (
+                            <span className="text-xs text-slate-500">Chargement...</span>
+                        ) : error ? (
+                            <span className="text-xs text-red-400">Erreur</span>
+                        ) : (
+                            <span className="text-xs text-slate-500">
+                {trips.length} {t("trips.list.countSuffix")}
+              </span>
+                        )}
                     </div>
 
-                    {MOCK_TRIPS.length === 0 ? (
+                    {/* États : chargement / erreur / vide / liste */}
+                    {loading ? (
+                        <div className="px-4 py-10 text-center text-sm text-slate-400">
+                            Chargement des trajets...
+                        </div>
+                    ) : error ? (
+                        <div className="px-4 py-10 text-center text-sm text-red-400">
+                            {error}
+                        </div>
+                    ) : trips.length === 0 ? (
                         <div className="px-4 py-10 text-center text-sm text-slate-400">
                             {t("trips.list.empty")}
                         </div>
                     ) : (
                         <ul className="divide-y divide-slate-800">
-                            {MOCK_TRIPS.map((trip) => (
+                            {trips.map((trip) => (
                                 <li
                                     key={trip.id}
                                     className="px-4 py-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between"
@@ -121,9 +118,9 @@ const TripsPage = () => {
                                         <p className="text-xs text-slate-400">
                                             {trip.date} · {trip.distanceKm} km · {trip.vehicleName}
                                         </p>
-                                        {trip.tagKey && (
+                                        {trip.tag && (
                                             <span className="inline-flex rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-300">
-                        {t(trip.tagKey)}
+                        {trip.tag}
                       </span>
                                         )}
                                     </div>
