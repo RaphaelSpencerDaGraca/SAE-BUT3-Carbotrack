@@ -8,6 +8,7 @@ const dockItems = [
     { to: "/dashboard", key: "nav.dashboard" },
     { to: "/vehicles", key: "nav.vehicles" },
     { to: "/trips", key: "nav.trips" },
+    { to: "/carbobot", key: "nav.carbobot" },
     { to: "/mode2vie", key: "nav.lifestyle" },
     { to: "/profile", key: "nav.profile" }
 ];

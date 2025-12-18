@@ -10,6 +10,7 @@ import ProfilePage from "@/pages/profile.tsx";
 import LifestylePage from '@/pages/mode2vie';
 import ForgotPasswordForm from '@/components/auth/ForgotPasswordForm';
 import ResetPasswordForm from '@/components/auth/ResetPasswordForm';
+import Carbobot from '@/pages/carbobot.tsx';
 
 const AppRoutes = () => {
     return (
@@ -26,6 +27,7 @@ const AppRoutes = () => {
                 <Route path="/trips" element={<TripsPage />} />
                 <Route path="/mode2vie" element={<LifestylePage />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/carbobot" element={<Carbobot />} />
                 {/* Tu pourras ajouter d'autres pages ici */}
             </Route>
 

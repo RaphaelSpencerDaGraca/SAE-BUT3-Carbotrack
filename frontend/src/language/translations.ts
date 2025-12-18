@@ -19,6 +19,7 @@ export const translations: Record<Language, Record<string, string>> = {
         "nav.trips": "Trajets",
         "nav.lifestyle": "Mode de vie",
         "nav.profile": "Profil",
+        "nav.caarbobot": "Carbobot",
 
         "lifestyle.loading": "Chargement...",
         "lifestyle.errorPrefix": "Erreur : ",
