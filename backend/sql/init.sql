@@ -136,3 +136,9 @@ BEGIN
         EXECUTE FUNCTION calculer_emission_co2();
     END IF;
 END $$;
+
+
+-- Changement pour l'inscription avec google
+ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL;
+ALTER TABLE users ADD COLUMN google_id VARCHAR(255) UNIQUE;
+
