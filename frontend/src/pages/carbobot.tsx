@@ -20,7 +20,7 @@ export const Carbobot = () => {
       // Appelle l'API backend pour obtenir la réponse de l'IA
       const response = await api.post('/chat', { prompt: inputValue });
       // Ajoute la réponse de l'IA
-      setMessages((prev) => [...prev, { content: response.data.response, isUser: false }]);
+      //setMessages((prev) => [...prev, { content: response.data.response, isUser: false }]);
     } catch (error) {
       console.error('Erreur:', error);
       setMessages((prev) => [...prev, { content: t('chat.error'), isUser: false }]);
