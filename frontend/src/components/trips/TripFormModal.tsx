@@ -99,7 +99,7 @@ export default function TripFormModal({ open, onClose, vehicles = [] }: Props) {
                             onChange={handleChange}
                             className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm"
                         >
-                            <option value="">(optionnel)</option>
+                            <option value="">(sélectionner véhicule)</option>
                             {vehicles.map((v) => (
                                 <option key={v.id} value={String(v.id)}>
                                     {v.name}
