@@ -1,7 +1,7 @@
 // frontend/src/pages/trips.tsx
 import { useEffect, useState } from 'react';
 import type { Trip } from '../../../shared/trip.type.ts';
-
+import TripFormModal from "@/components/trips/TripFormModal";
 import { useTranslation } from "@/language/useTranslation";
 
 type Trip = {
@@ -50,6 +50,7 @@ const MOCK_TRIPS: Trip[] = [
 
 const TripsPage = () => {
     const { t } = useTranslation();
+    const [isTripModalOpen, setIsTripModalOpen] = useState(false);
 
     return (
         <main className="min-h-screen bg-slate-950 text-slate-50 px-4 pb-24 pt-6">
@@ -69,12 +70,20 @@ const TripsPage = () => {
 
                     <button
                         type="button"
+                        onClick={() => setIsTripModalOpen(true)}
                         className="inline-flex items-center justify-center rounded-full border border-emerald-500/60 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-200 shadow-sm hover:bg-emerald-500/20"
                     >
                         {t("trips.action.newTrip")}
                     </button>
                 </header>
 
+                {/* Modal branchée */}
+                <TripFormModal
+                    open={isTripModalOpen}
+                    onClose={() => setIsTripModalOpen(false)}
+                    // optionnel: si ton modal expose un onSubmit/onCreated, tu le branches ici
+                    // onCreated={(createdTrip) => { ... }}
+                />
                 <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
                     <div className="flex flex-wrap items-center gap-3">
             <span className="text-xs font-medium text-slate-400">
