@@ -2,12 +2,14 @@
 import { useEffect, useState } from 'react';
 import type { Trip } from '../../../shared/trip.type.ts';
 import {useTranslation} from "@/language/useTranslation.ts";
+import TripFormModal from "@/components/trips/TripFormModal";
 
 const TripsPage = () => {
     const { t } = useTranslation();
     const [trips, setTrips] = useState<Trip[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [openModal, setOpenModal] = useState(false);
 
     useEffect(() => {
         const fetchTrips = async () => {
@@ -49,6 +51,7 @@ const TripsPage = () => {
 
                     <button
                         type="button"
+                        onClick={() => setOpenModal(true)}
                         className="inline-flex items-center justify-center rounded-full border border-emerald-500/60 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-200 shadow-sm hover:bg-emerald-500/20"
                     >
                         {t("trips.action.newTrip")}
@@ -150,6 +153,12 @@ const TripsPage = () => {
                     )}
                 </section>
             </div>
+
+            <TripFormModal
+                open={openModal}
+                onClose={() => setOpenModal(false)}
+            />
+
         </main>
     );
 };
