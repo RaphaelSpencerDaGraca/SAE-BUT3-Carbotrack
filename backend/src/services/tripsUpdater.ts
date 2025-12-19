@@ -1,6 +1,6 @@
 // backend/src/services/tripCo2Updater.ts
 
-import { pool } from '../db';
+import pool from "../config/db";
 import { calculateTripEmissionsKgCO2 } from './co2Calculator';
 import { FuelType } from '../../../shared/vehicle.type';
 
