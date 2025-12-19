@@ -2,7 +2,8 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { createUser, getUserByEmail } from '../models/user';
+import { getUserByEmail } from '../models/user';
+import { registerUserWithOptionalSeed } from '../services/registerUser';
 
 export const login = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -43,7 +44,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password, pseudo } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = await createUser(email, hashedPassword, pseudo);
+
+        const newUser = await registerUserWithOptionalSeed(email, hashedPassword, pseudo);
 
         const token = jwt.sign(
             { userId: newUser.id },
@@ -60,7 +62,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
             },
         });
     } catch (error) {
-        console.error('Erreur lors de l\'inscription:', error);
+        console.error("Erreur lors de l'inscription:", error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 };
