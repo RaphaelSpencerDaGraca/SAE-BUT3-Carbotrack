@@ -1,37 +1,99 @@
 // frontend/src/pages/trips.tsx
 import { useEffect, useState } from 'react';
 import type { Trip } from '../../../shared/trip.type.ts';
-import {useTranslation} from "@/language/useTranslation.ts";
+import type { Vehicle } from '../../../shared/vehicle.type.ts';
+import { useTranslation } from "@/language/useTranslation.ts";
 import TripFormModal from "@/components/trips/TripFormModal";
+import { getVehicles } from "@/services/vehicleService";
+
+type CreateTripPayload = {
+    date: string;
+    fromCity: string;
+    toCity: string;
+    distanceKm: number;
+    vehicleId: string;
+    tag?: string;
+};
 
 const TripsPage = () => {
     const { t } = useTranslation();
     const [trips, setTrips] = useState<Trip[]>([]);
+    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [openModal, setOpenModal] = useState(false);
 
+    const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3001/api';
+
+    const getToken = () => localStorage.getItem('token');
+
+    const fetchTrips = async () => {
+        const token = getToken();
+        const res = await fetch(`${API_BASE}/trips`, {
+            headers: {
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+        });
+
+        if (res.status === 401) {
+            throw new Error('Non authentifié : reconnecte-toi.');
+        }
+        if (!res.ok) {
+            throw new Error('Erreur lors du chargement des trajets');
+        }
+
+        const data: Trip[] = await res.json();
+        setTrips(data);
+    };
+
+    const fetchVehicles = async () => {
+        // ton vehicleService est déjà branché (et normalement déjà token-aware si tu utilises api.js)
+        const v = await getVehicles();
+        setVehicles(v);
+    };
+
     useEffect(() => {
-        const fetchTrips = async () => {
+        const load = async () => {
             try {
-                const res = await fetch('http://localhost:3001/api/trips');
-
-                if (!res.ok) {
-                    throw new Error('Erreur lors du chargement des trajets');
-                }
-
-                const data: Trip[] = await res.json();
-                setTrips(data);
+                setLoading(true);
+                setError(null);
+                await Promise.all([fetchTrips(), fetchVehicles()]);
             } catch (err) {
-                console.error('Erreur fetch /api/trips :', err);
+                console.error('Erreur chargement trips/vehicles :', err);
                 setError(err instanceof Error ? err.message : 'Erreur inconnue');
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchTrips();
+        load();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const handleCreateTrip = async (payload: CreateTripPayload) => {
+        const token = getToken();
+
+        const res = await fetch(`${API_BASE}/trips`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (res.status === 401) {
+            throw new Error('Non authentifié : reconnecte-toi.');
+        }
+        if (!res.ok) {
+            const txt = await res.text().catch(() => '');
+            throw new Error(txt || 'Erreur lors de la création du trajet');
+        }
+
+        const created: Trip = await res.json();
+        setTrips((prev) => [created, ...prev]);
+        setOpenModal(false);
+    };
 
     return (
         <main className="min-h-screen bg-slate-950 text-slate-50 px-4 pb-24 pt-6">
@@ -157,8 +219,9 @@ const TripsPage = () => {
             <TripFormModal
                 open={openModal}
                 onClose={() => setOpenModal(false)}
+                vehicles={vehicles}
+                onSubmit={handleCreateTrip}
             />
-
         </main>
     );
 };

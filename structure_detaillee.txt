@@ -38,7 +38,7 @@ E:/BUT_INFORMATIQUE/BUT3/sae/backend/src/routes/authController.ts
 E:/BUT_INFORMATIQUE/BUT3/sae/backend/src/routes/debug.ts
 E:/BUT_INFORMATIQUE/BUT3/sae/backend/src/routes/logementRouter.ts
 E:/BUT_INFORMATIQUE/BUT3/sae/backend/src/routes/ProduitRouter.ts
-E:/BUT_INFORMATIQUE/BUT3/sae/backend/src/routes/routes.trips.ts
+E:/BUT_INFORMATIQUE/BUT3/sae/backend/src/routes/trips.ts
 E:/BUT_INFORMATIQUE/BUT3/sae/backend/src/routes/typeChauffage.ts
 E:/BUT_INFORMATIQUE/BUT3/sae/backend/src/routes/userProfileRouter.ts
 E:/BUT_INFORMATIQUE/BUT3/sae/backend/src/routes/vehicles.ts
