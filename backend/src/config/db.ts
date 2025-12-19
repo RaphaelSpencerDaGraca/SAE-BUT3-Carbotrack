@@ -2,7 +2,9 @@
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 
-dotenv.config();
+import path from "path";
+
+dotenv.config({ path: path.resolve(__dirname, "../../..", ".env") });
 
 const pool = new Pool({
     user: process.env.DB_USER || process.env.POSTGRES_USER || 'user',
@@ -21,7 +23,5 @@ export const testConnection = async (): Promise<void> => {
         throw err;
     }
 };
-
-testConnection();  // Appelle la fonction de test
 
 export default pool;

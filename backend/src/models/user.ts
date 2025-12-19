@@ -1,4 +1,5 @@
 //backend\src\models\user.ts
+import type { PoolClient } from "pg";
 import bcrypt from "bcrypt";
 import pool from "../config/db";
 
@@ -51,3 +52,23 @@ export const updateUserPassword = async (userId: string, newPassword: string): P
     );
 };
 
+
+export const createUserTx = async (
+    client: PoolClient,
+    email: string,
+    password_hash: string,
+    pseudo: string
+) => {
+    const userResult = await client.query(
+        "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email, created_at",
+        [email, password_hash]
+    );
+    const userId = userResult.rows[0].id;
+
+    const profileResult = await client.query(
+        "INSERT INTO user_profiles (user_id, pseudo) VALUES ($1, $2) RETURNING pseudo",
+        [userId, pseudo]
+    );
+
+    return { ...userResult.rows[0], pseudo: profileResult.rows[0].pseudo };
+};
