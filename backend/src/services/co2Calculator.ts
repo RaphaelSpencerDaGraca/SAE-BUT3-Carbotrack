@@ -2,13 +2,7 @@
 
 // On redéclare ici le type de carburant pour que le service soit autonome.
 // Tu pourras le factoriser plus tard si tu as un type commun front/back.
-export type FuelType =
-    | 'essence'
-    | 'diesel'
-    | 'electrique'
-    | 'hybride'
-    | 'gpl'
-    | 'autre';
+import type { FuelType } from "../../../shared/vehicle.type";
 
 // Interface minimale dont le calcul a besoin.
 // Tu peux aussi directement passer fuelType + consumptionLPer100 en arguments

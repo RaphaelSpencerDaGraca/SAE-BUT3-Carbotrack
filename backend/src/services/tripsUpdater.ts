@@ -43,13 +43,10 @@ export async function recalculateAllTripsCo2(): Promise<TripCo2UpdateStats> {
 
         const fuelType = row.fuel_type as FuelType;
 
-        const co2Kg = calculateTripEmissionsKgCO2(
-            {
-                fuelType,
-                consumptionLPer100: consumption,
-            },
-            distanceKm
-        );
+        const co2Kg = calculateTripEmissionsKgCO2({
+            fuelType,
+            consumptionLPer100: consumption,
+        }, distanceKm);
 
         if (co2Kg === null) {
             skipped++;
