@@ -1,6 +1,6 @@
 // backend/src/routes/vehicles.ts
 import { Router } from "express";
-import { pool } from "../db";
+import pool from "../config/db";
 import { authenticate } from "../middlewares/auth";
 
 const router = Router();
