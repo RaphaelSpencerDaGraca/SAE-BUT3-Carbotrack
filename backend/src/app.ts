@@ -9,7 +9,7 @@ import { cors } from './middlewares/cors';
 import authRoutes from './routes/auth';
 import routerProduits from './routes/ProduitRouter';
 import vehiclesRoutes from "./routes/vehicles";
-import tripsRoutes from "./routes/routes.trips";
+import tripsRoutes from "./routes/trips";
 import debugRoutes from "./routes/debug";
 import routerTypeChauffage from './routes/typeChauffage';
 import logementRoutes from './routes/logementRouter';

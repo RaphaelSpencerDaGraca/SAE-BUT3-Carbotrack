@@ -1,4 +1,5 @@
 //backend\src\server.ts
+import 'dotenv/config';
 import { testConnection } from './config/db';
 import app from './app';
 

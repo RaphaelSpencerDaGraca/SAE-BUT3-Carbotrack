@@ -3,9 +3,10 @@
 import { Router, Request, Response } from 'express';
 import {
     calculateEmissionsPerKm,
-    calculateTripEmissionsKgCO2,
-    FuelType
+    calculateTripEmissionsKgCO2
 } from '../services/co2Calculator';
+import type { FuelType } from "../../../shared/vehicle.type";
+
 import { recalculateAllTripsCo2 } from '../services/tripsUpdater';
 
 const router = Router();

@@ -1,6 +1,6 @@
 // backend/src/services/tripCo2Updater.ts
 
-import { pool } from '../db';
+import pool from "../config/db";
 import { calculateTripEmissionsKgCO2 } from './co2Calculator';
 import { FuelType } from '../../../shared/vehicle.type';
 
@@ -43,13 +43,10 @@ export async function recalculateAllTripsCo2(): Promise<TripCo2UpdateStats> {
 
         const fuelType = row.fuel_type as FuelType;
 
-        const co2Kg = calculateTripEmissionsKgCO2(
-            {
-                fuelType,
-                consumptionLPer100: consumption,
-            },
-            distanceKm
-        );
+        const co2Kg = calculateTripEmissionsKgCO2({
+            fuelType,
+            consumptionLPer100: consumption,
+        }, distanceKm);
 
         if (co2Kg === null) {
             skipped++;
