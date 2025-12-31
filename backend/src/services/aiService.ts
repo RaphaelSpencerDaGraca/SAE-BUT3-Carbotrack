@@ -1,36 +1,46 @@
 // backend/src/services/aiService.ts
-import axios from 'axios';
+import { Client } from "@gradio/client";
+import dotenv from "dotenv";
 
-/**
- * Interroge le modèle Mistral pour obtenir une réponse.
- * @param prompt - La question ou le message de l'utilisateur.
- * @returns La réponse générée par l'IA.
- */
-export const queryMistralModel = async (prompt: string): Promise<string> => {
+dotenv.config();
+
+const SPACE_URL = "https://raphaelsdg1-carbobotspace.hf.space/"; 
+
+
+let clientInstance: any = null; 
+
+
+const getClient = async () => {
+  if (!clientInstance) {
+    console.log("Initialisation de la connexion Gradio...");
+    clientInstance = await Client.connect(SPACE_URL, { 
+      // hf_token: process.env.HF_ACCESS_TOKEN 
+    });
+    console.log("Connecté au Space Gradio !");
+  }
+  return clientInstance;
+};
+
+export const askQwenGradio = async (userPrompt: string) => {
   try {
-    // Si tu utilises une API externe (ex : Mistral hébergé)
-    const response = await axios.post(
-      'https://api.mistral.ai/v1/chat/completions', // URL de l'API Mistral
-      {
-        model: 'mistral-tiny', // ou le modèle que tu utilises
-        messages: [{ role: 'user', content: prompt }],
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${process.env.MISTRAL_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
 
-    // Retourne la réponse générée par l'IA
-    return response.data.choices[0].message.content;
+    const client = await getClient();
 
-    // Si tu utilises un modèle local (ex : via ONNX ou une lib Python)
-    // Appelle ton script Python ou ton service local ici
-    // Exemple : return await callLocalMistralModel(prompt);
+    console.log(`Envoi du prompt : "${userPrompt.substring(0, 50)}..."`);
+
+    const result = await client.predict("/generate_response", [ 
+      userPrompt 
+    ]);
+
+    // Typage de sécurité : on force en string pour TypeScript
+    const aiResponse = result.data[0] as string;
+    
+    return aiResponse;
+
   } catch (error) {
-    console.error('Erreur lors de l\'appel à Mistral:', error);
-    throw new Error('Impossible de générer une réponse.');
+    console.error("Erreur lors de l'appel Gradio:", error);
+    // Optionnel : Si l'erreur vient de la connexion, on reset l'instance pour retenter la prochaine fois
+    if (clientInstance) clientInstance = null;
+    throw new Error("Impossible de récupérer la réponse de l'IA.");
   }
 };
