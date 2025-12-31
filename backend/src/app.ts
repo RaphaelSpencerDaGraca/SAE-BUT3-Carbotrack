@@ -1,7 +1,7 @@
 //backend\src\app.ts
 import express from 'express';
 
-//import {authenticate,} from './middlewares/auth';
+import { authenticate } from './middlewares/auth'; 
 //import {validateRegistration, validateLogin} from './middlewares/validate';
 import {notFoundHandler, errorHandler} from './middlewares/errorHandler';
 import { requestLogger } from './middlewares/login';
@@ -15,6 +15,7 @@ import routerTypeChauffage from './routes/typeChauffage';
 import logementRoutes from './routes/logementRouter';
 import userProfileRouter from './routes/userProfileRouter';
 import passwordResetRoutes from './routes/passwordReset';
+import airouter from './routes/aiRoutes';
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use('/api/type_chauffage',routerTypeChauffage)
 app.use('/api/logements', logementRoutes);
 app.use('/api/user_profiles', userProfileRouter);
 app.use('/api/password-reset', passwordResetRoutes);
+app.use('/api/ai', airouter);
 
 
 if (process.env.NODE_ENV !== 'production') {     // route accessible uniquement en dev
