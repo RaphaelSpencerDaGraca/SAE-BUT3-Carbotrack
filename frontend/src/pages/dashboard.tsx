@@ -48,12 +48,6 @@ const Dashboard = () => {
                     <div className="flex items-center gap-2">
                         <button
                             type="button"
-                            className="inline-flex items-center justify-center rounded-full border border-emerald-500/60 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-200 shadow-sm hover:bg-emerald-500/20"
-                        >
-                            {t("dashboard.action.newVehicle")}
-                        </button>
-                        <button
-                            type="button"
                             onClick={logout}
                             className="inline-flex items-center justify-center rounded-full border border-red-500/60 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-200 shadow-sm hover:bg-red-500/20"
                         >
