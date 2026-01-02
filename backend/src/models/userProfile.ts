@@ -5,6 +5,14 @@ export interface UserProfile {
   user_id: string;
   emission_co2_transport: number | null;
   emission_co2_lifestyle: number | null;
+  pseudo?: string;
+  genre?: 'Homme' | 'Femme' | 'Autre';
+}
+
+export interface UserProfile {
+  user_id: string;
+  emission_co2_transport: number | null;
+  emission_co2_lifestyle: number | null;
 }
 
 export const createUserProfile = async (profile: UserProfile): Promise<UserProfile> => {
@@ -30,10 +38,18 @@ export const updateUserProfile = async (userId: string, payload: Partial<UserPro
   const res = await pool.query(
     `UPDATE user_profiles
      SET emission_co2_transport = COALESCE($2, emission_co2_transport),
-         emission_co2_lifestyle = COALESCE($3, emission_co2_lifestyle)
+         emission_co2_lifestyle = COALESCE($3, emission_co2_lifestyle),
+         pseudo = COALESCE($4, pseudo),
+         genre = COALESCE($5, genre)
      WHERE user_id = $1
-     RETURNING user_id, emission_co2_transport, emission_co2_lifestyle`,
-    [userId, payload.emission_co2_transport ?? null, payload.emission_co2_lifestyle ?? null]
+     RETURNING user_id, emission_co2_transport, emission_co2_lifestyle, pseudo, genre`,
+    [
+        userId,
+        payload.emission_co2_transport ?? null,
+        payload.emission_co2_lifestyle ?? null,
+        payload.pseudo ?? null,
+        payload.genre ?? null
+    ]
   );
   return res.rows[0] || null;
 };

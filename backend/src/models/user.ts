@@ -72,3 +72,14 @@ export const createUserTx = async (
 
     return { ...userResult.rows[0], pseudo: profileResult.rows[0].pseudo };
 };
+
+
+export const deleteUser = async (userId: string): Promise<boolean> => {
+    const res = await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+    return (res.rowCount ?? 0) > 0;
+};
+
+export const getUserById = async (userId: string): Promise<DBUser | null> => {
+    const res = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
+    return res.rows[0] || null;
+};
