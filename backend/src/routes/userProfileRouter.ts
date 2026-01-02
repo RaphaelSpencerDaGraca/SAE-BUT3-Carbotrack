@@ -1,24 +1,16 @@
-//
 import { Router } from 'express';
-import {
-  createUserProfileController,
-  getUserProfileController,
-  updateUserProfileController,
-  deleteUserProfileController,
-} from '../controller/userProfileController';
+import { authenticate } from '../middlewares/auth';
+// CORRECTION : On importe 'updateProfile' (le vrai nom) et non 'updateUserProfileController'
+import { getUserProfileController, updateProfile } from '../controller/userProfileController';
 
-const userProfileRouter = Router();
+const router = Router();
 
-/**
- * POST   /api/user_profiles           -> create profile
- * GET    /api/user_profiles/:userId   -> get profile by user id
- * PUT    /api/user_profiles/:userId   -> update profile by user id
- * DELETE /api/user_profiles/:userId   -> delete profile by user id
- */
+// Route pour récupérer le profil (GET)
+// On ajoute 'authenticate' pour sécuriser la route
+router.get('/:userId', authenticate as any, getUserProfileController);
 
-userProfileRouter.post('/', createUserProfileController);
-userProfileRouter.get('/:userId', getUserProfileController);
-userProfileRouter.put('/:userId', updateUserProfileController);
-userProfileRouter.delete('/:userId', deleteUserProfileController);
+// Route pour mettre à jour le profil (PUT)
+// CORRECTION : On utilise la fonction 'updateProfile' importée correctement
+router.put('/:userId', authenticate as any, updateProfile);
 
-export default userProfileRouter;
+export default router;

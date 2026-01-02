@@ -36,20 +36,32 @@ export const getUserProfileController = async (req: Request, res: Response) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 };
-export const updateUserProfileController = async (req: Request, res: Response) => {
-  try {
-    const userId = String(req.params.userId);
-    const payload: Partial<{ emission_co2_transport: number; emission_co2_lifestyle: number }> = req.body;
-    const updated = await updateUserProfile(userId, {
-      emission_co2_transport: payload.emission_co2_transport ?? null,
-      emission_co2_lifestyle: payload.emission_co2_lifestyle ?? null,
-    });
-    if (!updated) return res.status(404).json({ error: 'Profil non trouvé' });
-    return res.json(updated);
-  } catch (err) {
-    console.error('updateUserProfile error', err);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
+export const updateProfile = async (req: Request, res: Response) => {
+    try {
+        const { userId } = req.params;
+        const { emission_co2_transport, emission_co2_lifestyle, pseudo, genre } = req.body;
+
+        // CORRECTION : On ajoute 'as string' pour rassurer TypeScript
+        if (!userId) {
+            return res.status(400).json({ error: "ID utilisateur manquant" });
+        }
+
+        const updatedProfile = await updateUserProfile(userId as string, {
+            emission_co2_transport,
+            emission_co2_lifestyle,
+            pseudo,
+            genre
+        });
+
+        if (!updatedProfile) {
+            return res.status(404).json({ error: 'Impossible de mettre à jour le profil' });
+        }
+
+        res.json(updatedProfile);
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour du profil:', error);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
 };
 
 
