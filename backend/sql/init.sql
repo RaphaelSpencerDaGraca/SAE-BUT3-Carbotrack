@@ -21,7 +21,12 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
 CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user_id ON password_reset_tokens(user_id);
 CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_token ON password_reset_tokens(token);
 
-create type genre_enum as enum ('Homme','Femme','Autre');
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'genre_enum') THEN
+        CREATE TYPE genre_enum AS ENUM ('Homme','Femme','Autre');
+    END IF;
+END$$;
 --Table des profils utilisateurs
 create table if not exists user_profiles(
                               user_id UUID primary key references users(id) on delete cascade,
@@ -59,7 +64,12 @@ create table if not exists trips (
 
 
 
-create type produit_source_enum as enum ('Base Carbone','Open Food Facts','Manuel');
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'produit_source_enum') THEN
+        CREATE TYPE produit_source_enum AS ENUM ('Base Carbone','Open Food Facts','Manuel');
+    END IF;
+END$$;
 --Table des produits
 create table if not exists produit (
     id SERIAL PRIMARY KEY,
@@ -138,7 +148,25 @@ BEGIN
 END $$;
 
 
--- Changement pour l'inscription avec google
-ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL;
-ALTER TABLE users ADD COLUMN google_id VARCHAR(255) UNIQUE;
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'users' 
+        AND column_name = 'password_hash' 
+        AND is_nullable = 'NO'
+    ) THEN
+        ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL;
+    END IF;
+END $$;
 
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'users' 
+        AND column_name = 'google_id'
+    ) THEN
+        ALTER TABLE users ADD COLUMN google_id VARCHAR(255) UNIQUE;
+    END IF;
+END $$;
