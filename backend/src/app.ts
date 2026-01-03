@@ -1,12 +1,10 @@
 // backend/src/app.ts
 import express from 'express';
-
 import cors from 'cors'; 
 
 import { authenticate } from './middlewares/auth'; 
 import {notFoundHandler, errorHandler} from './middlewares/errorHandler';
 import { requestLogger } from './middlewares/login';
-
 
 import authRoutes from './routes/auth'; 
 import routerProduits from './routes/ProduitRouter';
@@ -18,13 +16,13 @@ import logementRoutes from './routes/logementRouter';
 import userProfileRouter from './routes/userProfileRouter';
 import passwordResetRoutes from './routes/passwordReset';
 import airouter from './routes/aiRoutes';
+import electromenagerRouter from './routes/electromenagerRouter'; 
 
 const app = express();
 
-
 app.use(cors({
-    origin: 'http://localhost:5173', // L'adresse frontend
-    credentials: true,               // Autorise les cookies/tokens
+    origin: 'http://localhost:5173',
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
@@ -42,6 +40,7 @@ app.use('/api/logements', logementRoutes);
 app.use('/api/user_profiles', userProfileRouter);
 app.use('/api/password-reset', passwordResetRoutes);
 app.use('/api/ai', airouter);
+app.use('/api/electromenager', electromenagerRouter);
 
 if (process.env.NODE_ENV !== 'production') {
     app.use('/api/debug', debugRoutes);

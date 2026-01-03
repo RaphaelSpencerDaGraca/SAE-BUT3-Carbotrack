@@ -10,26 +10,24 @@ export class ElectromenagerController {
     static async ajouterAppareil(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
             const userId = req.user?.userId; 
-            if (!userId) {
-                return res.status(401).json({ message: "Utilisateur non identifié." });
-            }
-
             const { 
                 logementId, nom, type, marque, modele, 
                 consommationKwhAn, consommationEauAn, classeEnergetique, 
                 co2FabricationKg, dureeVieTheoriqueAns 
             } = req.body;
 
+            if (!userId) return res.status(401).json({ message: "Utilisateur non identifié." });
             if (!logementId || !nom || !type) {
-                return res.status(400).json({ message: "Champs obligatoires manquants (logementId, nom, type)" });
+                return res.status(400).json({ message: "Champs obligatoires manquants." });
             }
+
             const verifLogement = await pool.query(
                 'SELECT id FROM logement WHERE id = $1 AND user_id = $2',
-                [logementId, userId as string]
+                [logementId, userId as string] 
             );
 
             if (verifLogement.rows.length === 0) {
-                return res.status(403).json({ message: "Accès refusé : Ce logement ne vous appartient pas." });
+                return res.status(403).json({ message: "Ce logement ne vous appartient pas." });
             }
 
             let co2UsageCalcule = 0;
@@ -54,13 +52,10 @@ export class ElectromenagerController {
 
             const appareilCree = await ElectromenagerModel.create(nouvelAppareil);
 
-            res.status(201).json({
-                message: "Appareil ajouté avec succès",
-                data: appareilCree
-            });
+            res.status(201).json({ message: "Appareil ajouté", data: appareilCree });
 
         } catch (error) {
-            console.error("Erreur lors de l'ajout de l'appareil:", error);
+            console.error("Erreur ajout appareil:", error);
             next(error);
         }
     }
@@ -68,24 +63,21 @@ export class ElectromenagerController {
     static async getAppareilsByLogement(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
             const userId = req.user?.userId;
-            const logementId = req.params.logementId;
+            const { logementId } = req.params;
 
             if (!userId) return res.status(401).json({ message: "Non authentifié" });
             if (!logementId) return res.status(400).json({ message: "ID logement manquant" });
 
-            const safeUserId = userId as string;
-            const safeLogementId = logementId as string;
-
             const verifLogement = await pool.query(
                 'SELECT id FROM logement WHERE id = $1 AND user_id = $2',
-                [safeLogementId, safeUserId]
+                [logementId as string, userId as string]
             );
 
             if (verifLogement.rows.length === 0) {
-                return res.status(403).json({ message: "Non autorisé ou logement introuvable." });
+                return res.status(403).json({ message: "Logement introuvable ou accès refusé." });
             }
 
-            const appareils = await ElectromenagerModel.findAllByLogementId(parseInt(safeLogementId));
+            const appareils = await ElectromenagerModel.findAllByLogementId(parseInt(logementId as string));
             
             res.status(200).json(appareils);
 
@@ -97,32 +89,25 @@ export class ElectromenagerController {
     static async updateAppareil(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
             const userId = req.user?.userId;
-            const id = req.params.id; 
+            const { id } = req.params;
             const updates = req.body;
 
             if (!userId) return res.status(401).json({ message: "Non authentifié" });
-            if (!id) return res.status(400).json({ message: "ID appareil manquant" });
-
-            const safeUserId = userId as string;
-            const safeAppareilId = id as string;
+            if (!id) return res.status(400).json({ message: "ID manquant" });
 
             const verification = await pool.query(`
-                SELECT e.id 
-                FROM electromenager e
+                SELECT e.id FROM electromenager e
                 JOIN logement l ON e.logement_id = l.id
                 WHERE e.id = $1 AND l.user_id = $2
-            `, [safeAppareilId, safeUserId]);
+            `, [id as string, userId as string]);
 
-            if (verification.rows.length === 0) {
-                return res.status(403).json({ message: "Impossible de modifier cet appareil." });
-            }
+            if (verification.rows.length === 0) return res.status(403).json({ message: "Impossible de modifier." });
 
             if (updates.consommationKwhAn) {
                 updates.co2UsageKgAn = updates.consommationKwhAn * FACTEUR_EMISSION_ELEC;
             }
 
-            const updatedAppareil = await ElectromenagerModel.update(parseInt(safeAppareilId), updates);
-            
+            const updatedAppareil = await ElectromenagerModel.update(parseInt(id as string), updates);
             res.status(200).json(updatedAppareil);
 
         } catch (error) {
@@ -133,26 +118,20 @@ export class ElectromenagerController {
     static async supprimerAppareil(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
             const userId = req.user?.userId;
-            const id = req.params.id;
+            const { id } = req.params;
 
             if (!userId) return res.status(401).json({ message: "Non authentifié" });
-            if (!id) return res.status(400).json({ message: "ID appareil manquant" });
-
-            const safeUserId = userId as string;
-            const safeAppareilId = id as string;
+            if (!id) return res.status(400).json({ message: "ID manquant" });
 
             const verification = await pool.query(`
-                SELECT e.id 
-                FROM electromenager e
+                SELECT e.id FROM electromenager e
                 JOIN logement l ON e.logement_id = l.id
                 WHERE e.id = $1 AND l.user_id = $2
-            `, [safeAppareilId, safeUserId]);
+            `, [id as string, userId as string]);
 
-            if (verification.rows.length === 0) {
-                return res.status(403).json({ message: "Impossible de supprimer cet appareil." });
-            }
+            if (verification.rows.length === 0) return res.status(403).json({ message: "Impossible de supprimer." });
 
-            await ElectromenagerModel.delete(parseInt(safeAppareilId));
+            await ElectromenagerModel.delete(parseInt(id as string));
             res.status(200).json({ message: "Appareil supprimé." });
 
         } catch (error) {
