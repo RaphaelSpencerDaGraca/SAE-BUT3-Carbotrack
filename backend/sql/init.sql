@@ -84,13 +84,18 @@ create table if not exists produit (
     date_maj TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
---Table des logements
--- Table des types de chauffage
-CREATE TABLE IF NOT EXISTS type_chauffage(
+
+
+
+
+--Table des produits électroménager
+
+create table if not exists electromenager(
     id SERIAL PRIMARY KEY,
-    type_chauffage VARCHAR(100) NOT NULL UNIQUE,
-    consommation_moyenne_kwh_m2 FLOAT NOT NULL,
-    facteur_emission_co2 FLOAT NOT NULL
+    user_id UUID REFERENCES user_profiles(user_id) ON DELETE CASCADE,
+    consommationElec FLOAT,
+    impactC02 FLOAT,
+    consommationEau FLOAT
 );
 
 -- Table des logements
@@ -109,6 +114,44 @@ CREATE TABLE IF NOT EXISTS logement(
 -- Index pour optimiser les requêtes
 CREATE INDEX IF NOT EXISTS idx_logement_user_id ON logement(user_id);
 CREATE INDEX IF NOT EXISTS idx_logement_type_chauffage_id ON logement(type_chauffage_id);
+
+--Table electromenager
+CREATE TABLE IF NOT EXISTS electromenager (
+    id SERIAL PRIMARY KEY,
+    logement_id INT NOT NULL REFERENCES logement(id) ON DELETE CASCADE,
+    nom VARCHAR(255) NOT NULL,
+    type type_electromenager_enum NOT NULL,
+    marque VARCHAR(100),
+    modele VARCHAR(100), 
+    
+
+    consommation_kwh_an FLOAT DEFAULT 0, 
+    consommation_eau_an FLOAT DEFAULT 0, 
+    classe_energetique VARCHAR(5), -- A, B, C...
+
+    co2_fabrication_kg FLOAT DEFAULT 0, 
+    co2_usage_kg_an FLOAT DEFAULT 0,
+    
+    source_donnees VARCHAR(50) DEFAULT 'Manuel', -- 'Manuel', 'EPREL', 'ADEME'
+    date_achat DATE, 
+    duree_vie_theorique_ans INT DEFAULT 10, 
+    
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Index pour récupérer rapidement les appareils d'un logement
+CREATE INDEX IF NOT EXISTS idx_electromenager_logement_id ON electromenager(logement_id);
+
+-- Création d'un type pour catégoriser 
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'type_electromenager_enum') THEN
+        CREATE TYPE type_electromenager_enum AS ENUM (
+            'Refrigerateur', 'Congelateur', 'Lave-linge', 'Seche-linge', 
+            'Lave-vaisselle', 'Four', 'Micro-ondes', 'Televiseur', 'Ordinateur', 'Autre'
+        );
+    END IF;
+END$$;
 
 -- Fonction pour calculer les émissions de CO2
 CREATE OR REPLACE FUNCTION calculer_emission_co2()
@@ -170,3 +213,5 @@ BEGIN
         ALTER TABLE users ADD COLUMN google_id VARCHAR(255) UNIQUE;
     END IF;
 END $$;
+
+
