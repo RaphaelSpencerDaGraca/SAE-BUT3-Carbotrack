@@ -3,7 +3,9 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { getUserByEmail, updateUserPassword, deleteUser, getUserById } from '../models/user';
+import { AuthenticatedRequest } from '../middlewares/auth';
 import { registerUserWithOptionalSeed } from '../services/registerUser';
+import pool from '../config/db';
 
 export const login = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -123,4 +125,40 @@ export const deleteAccount = async (req: Request, res: Response) => {
         console.error('Erreur suppression compte:', error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
+};
+
+export const getMe = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    // 1. Récupération sécurisée de l'ID depuis le middleware
+    const userId = req.user?.userId;
+
+    // 2. Vérification stricte (TypeScript)
+    if (!userId) {
+      return res.status(401).json({ message: 'Non authentifié' });
+    }
+
+    // 3. Typage fort pour la requête SQL
+    const safeUserId: string = String(userId);
+
+    // 4. Requête SQL (On exclut le mot de passe pour la sécurité)
+    const query = `
+      SELECT u.id, u.email, u.created_at, p.pseudo, p.genre, p.emission_co2_lifestyle
+      FROM users u
+      LEFT JOIN user_profiles p ON u.id = p.user_id
+      WHERE u.id = $1
+    `;
+
+    const { rows } = await pool.query(query, [safeUserId]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Utilisateur introuvable' });
+    }
+
+    // 5. Renvoi des données
+    return res.status(200).json(rows[0]);
+
+  } catch (error) {
+    console.error('Erreur getMe:', error);
+    return res.status(500).json({ message: 'Erreur serveur' });
+  }
 };

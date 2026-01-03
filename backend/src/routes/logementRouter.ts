@@ -1,31 +1,28 @@
-//backend\src\routes\logementRouter.ts
 import { Router } from 'express';
 import {
   createLogementController,
   getLogementByIdController,
-  getLogementByUserIdController,
+  getLogementByUserIdController, // Ceci renvoie maintenant une liste
   updateLogementController,
   deleteLogementController,
   getAllLogementsController,
 } from '../controller/logementController';
 
-const router = Router();
+const logementRoutes = Router();
 
-/**
- * Routes:
- * POST   /api/logements               -> create logement
- * GET    /api/logements               -> list all logements
- * GET    /api/logements/:id           -> get logement by DB id
- * GET    /api/logements/user/:userId  -> get logement by user id (UUID)
- * PUT    /api/logements/user/:userId  -> update logement by user id
- * DELETE /api/logements/user/:userId  -> delete logement by user id
- */
+// Créer un logement
+logementRoutes.post('/', createLogementController);
 
-router.post('/', createLogementController);
-router.get('/', getAllLogementsController);
-router.get('/:id', getLogementByIdController);
-router.get('/user/:userId', getLogementByUserIdController);
-router.put('/user/:userId', updateLogementController);
-router.delete('/user/:userId', deleteLogementController);
+// Lister tous les logements (admin ou debug)
+logementRoutes.get('/', getAllLogementsController);
 
-export default router;
+// Obtenir un logement précis par son ID
+logementRoutes.get('/:id', getLogementByIdController);
+
+// Obtenir la LISTE des logements d'un user
+logementRoutes.get('/user/:userId', getLogementByUserIdController);
+
+// Mettre à jour / Supprimer (Attention, ces routes agissent par UserID actuellement)
+logementRoutes.put('/user/:userId', updateLogementController);
+logementRoutes.delete('/user/:userId', deleteLogementController);
+export default logementRoutes;

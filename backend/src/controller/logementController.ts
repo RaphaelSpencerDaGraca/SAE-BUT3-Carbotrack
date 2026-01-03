@@ -1,8 +1,7 @@
-//backend\src\controller\logementController.ts
 import { Request, Response } from 'express';
-import { getLogementById,getLogementByUserId, createLogement, updateLogement, deleteLogement, getAllLogements} from '../models/logement';
+import { getLogementById, getLogementsByUserId, createLogement, updateLogement, deleteLogement, getAllLogements} from '../models/logement';
 import { logement as LogementType } from '../../../shared/logement';
-import { validationResult } from 'express-validator/lib/validation-result';
+import { validationResult } from 'express-validator';
 
 export const createLogementController = async (req: Request, res: Response) => {
   try {
@@ -10,15 +9,15 @@ export const createLogementController = async (req: Request, res: Response) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    const logementData: LogementType = req.body;
+    const logementData = req.body;
     const created = await createLogement(logementData);
     return res.status(201).json(created);
-  } catch (err) {
+  } catch (err: any) {
     console.error('createLogement error', err);
-    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-    return res.status(500).json({ error: 'Failed to create logement', details: errorMessage });
+    return res.status(500).json({ error: 'Failed to create logement', details: err.message });
   }
 };
+
 export const getLogementByIdController = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
@@ -32,12 +31,13 @@ export const getLogementByIdController = async (req: Request, res: Response) => 
   }
 };
 
+// C'est ici que ça change : on renvoie une liste
 export const getLogementByUserIdController = async (req: Request, res: Response) => {
   try {
     const userId = String(req.params.userId);
-    const logement = await getLogementByUserId(userId);
-    if (!logement) return res.status(404).json({ error: 'Logement not found for user' });
-    return res.json(logement);
+    const logements = await getLogementsByUserId(userId);
+    // On renvoie le tableau directement (même si vide)
+    return res.json(logements);
   } catch (err) {
     console.error('getLogementByUserId error', err);
     return res.status(500).json({ error: 'Internal server error' });
@@ -49,7 +49,6 @@ export const updateLogementController = async (req: Request, res: Response) => {
     const userId = String(req.params.userId);
     const payload: Partial<LogementType> = req.body;
     const updated = await updateLogement(userId, payload);
-    if (!updated) return res.status(404).json({ error: 'Logement not found for user' });
     return res.json(updated);
   } catch (err) {
     console.error('updateLogement error', err);
@@ -60,8 +59,7 @@ export const updateLogementController = async (req: Request, res: Response) => {
 export const deleteLogementController = async (req: Request, res: Response) => {
   try {
     const userId = String(req.params.userId);
-    const deleted = await deleteLogement(userId);
-    if (!deleted) return res.status(404).json({ error: 'Logement not found for user' });
+    await deleteLogement(userId);
     return res.status(204).send();
   } catch (err) {
     console.error('deleteLogement error', err);
