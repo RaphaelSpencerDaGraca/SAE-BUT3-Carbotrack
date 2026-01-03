@@ -1,14 +1,14 @@
 -- /backend/sql/init.sql
--- Table des utilisateurs
-create table if not exists users (
-                       id UUID primary key default gen_random_uuid(),
-                       email varchar(255) unique not null,
-                       password_hash VARCHAR(255) not null,
-                       created_at timestamp default now(),
-                       is_active boolean default true,
-                       consent_rgpd boolean default false
-);
 
+-- 1. Table des utilisateurs
+create table if not exists users (
+    id UUID primary key default gen_random_uuid(),
+    email varchar(255) unique not null,
+    password_hash VARCHAR(255) not null,
+    created_at timestamp default now(),
+    is_active boolean default true,
+    consent_rgpd boolean default false
+);
 
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
     id SERIAL PRIMARY KEY,
@@ -27,42 +27,41 @@ BEGIN
         CREATE TYPE genre_enum AS ENUM ('Homme','Femme','Autre');
     END IF;
 END$$;
---Table des profils utilisateurs
+
+-- 2. Table des profils utilisateurs
 create table if not exists user_profiles(
-                              user_id UUID primary key references users(id) on delete cascade,
-                              pseudo varchar(100),
-                              genre genre_enum,
-                              emission_co2_lifestyle FLOAT,
-                              emission_co2_transport FLOAT
+    user_id UUID primary key references users(id) on delete cascade,
+    pseudo varchar(100),
+    genre genre_enum,
+    emission_co2_lifestyle FLOAT,
+    emission_co2_transport FLOAT
 );
--- Table des véhicules
+
+-- 3. Table des véhicules
 create table if not exists vehicles (
-                                        id serial primary key,
-                                        user_id uuid not null references users(id) on delete cascade,
-                                        name varchar(255) not null,
-                                        plate varchar(20),
-                                        type varchar(50),
-                                        fuel_type varchar(50) not null,
-                                        consumption_l_per_100 numeric(10,2),
-                                        created_at timestamp default now()
+    id serial primary key,
+    user_id uuid not null references users(id) on delete cascade,
+    name varchar(255) not null,
+    plate varchar(20),
+    type varchar(50),
+    fuel_type varchar(50) not null,
+    consumption_l_per_100 numeric(10,2),
+    created_at timestamp default now()
 );
 
--- Table des trajets
+-- 4. Table des trajets
 create table if not exists trips (
-                                 id serial primary key,
-                                 user_id uuid references users(id) on delete cascade,
-                                 vehicle_id serial not null references vehicles,
-                                 date date not null,
-                                 from_city varchar(255) not null,
-                                 to_city varchar(255) not null,
-                                 distance_km numeric(10,1) not null,
-                                 co2_kg numeric(10,2) not null,
-                                 tag varchar(255),
-                                 created_at timestamp default now()
+    id serial primary key,
+    user_id uuid references users(id) on delete cascade,
+    vehicle_id serial not null references vehicles,
+    date date not null,
+    from_city varchar(255) not null,
+    to_city varchar(255) not null,
+    distance_km numeric(10,1) not null,
+    co2_kg numeric(10,2) not null,
+    tag varchar(255),
+    created_at timestamp default now()
 );
-
-
-
 
 DO $$
 BEGIN
@@ -70,7 +69,8 @@ BEGIN
         CREATE TYPE produit_source_enum AS ENUM ('Base Carbone','Open Food Facts','Manuel');
     END IF;
 END$$;
---Table des produits
+
+-- 5. Table des produits
 create table if not exists produit (
     id SERIAL PRIMARY KEY,
     nom VARCHAR(255) NOT NULL,
@@ -84,65 +84,49 @@ create table if not exists produit (
     date_maj TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-
-
-
-
---Table des produits électroménager
-
-create table if not exists electromenager(
+-- =================================================================
+-- 6. Table Type Chauffage (Mise à jour avec vos données)
+-- =================================================================
+CREATE TABLE IF NOT EXISTS type_chauffage (
     id SERIAL PRIMARY KEY,
-    user_id UUID REFERENCES user_profiles(user_id) ON DELETE CASCADE,
-    consommationElec FLOAT,
-    impactC02 FLOAT,
-    consommationEau FLOAT
+    type_chauffage VARCHAR(100) NOT NULL UNIQUE, -- Ajout de UNIQUE pour supporter ON CONFLICT
+    consommation_moyenne_kwh_m2 FLOAT DEFAULT 0,
+    facteur_emission_co2 FLOAT DEFAULT 0
 );
 
--- Table des logements
+-- Insertion de vos données spécifiques
+INSERT INTO type_chauffage (type_chauffage, consommation_moyenne_kwh_m2, facteur_emission_co2)
+VALUES
+    ('Électricité', 125, 0.147),
+    ('Chaudière à gaz', 150, 0.227),
+    ('Chaudière à fioul', 250, 0.324),
+    ('Pompe à chaleur air/eau', 50, 0.05), 
+    ('Pompe à chaleur géothermique', 40, 0.04),  
+    ('Chauffage électrique', 125, 0.147),  
+    ('Poêle à bois', 100, 0.03),
+    ('Chauffage au charbon', 300, 0.35), 
+    ('Chauffage solaire thermique', 0, 0.0) 
+ON CONFLICT (type_chauffage) DO NOTHING;
+
+-- =================================================================
+
+-- 7. Table des logements
 CREATE TABLE IF NOT EXISTS logement(
     id SERIAL PRIMARY KEY,
     user_id UUID REFERENCES user_profiles(user_id) ON DELETE CASCADE,
     superficie FLOAT NOT NULL CHECK (superficie > 0),
     nombre_pieces INT NOT NULL CHECK (nombre_pieces > 0),
-    type_chauffage_id INT REFERENCES type_chauffage(id),
+    type_chauffage_id INT REFERENCES type_chauffage(id), 
     classe_isolation CHAR(1) CHECK (classe_isolation IN ('A', 'B', 'C', 'D', 'E', 'F', 'G')),
     emission_co2_annuelle FLOAT,
     date_maj TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     zone_climatique VARCHAR(50)
 );
 
--- Index pour optimiser les requêtes
 CREATE INDEX IF NOT EXISTS idx_logement_user_id ON logement(user_id);
 CREATE INDEX IF NOT EXISTS idx_logement_type_chauffage_id ON logement(type_chauffage_id);
 
---Table electromenager
-CREATE TABLE IF NOT EXISTS electromenager (
-    id SERIAL PRIMARY KEY,
-    logement_id INT NOT NULL REFERENCES logement(id) ON DELETE CASCADE,
-    nom VARCHAR(255) NOT NULL,
-    type type_electromenager_enum NOT NULL,
-    marque VARCHAR(100),
-    modele VARCHAR(100), 
-    
-
-    consommation_kwh_an FLOAT DEFAULT 0, 
-    consommation_eau_an FLOAT DEFAULT 0, 
-    classe_energetique VARCHAR(5), -- A, B, C...
-
-    co2_fabrication_kg FLOAT DEFAULT 0, 
-    co2_usage_kg_an FLOAT DEFAULT 0,
-    
-    source_donnees VARCHAR(50) DEFAULT 'Manuel', -- 'Manuel', 'EPREL', 'ADEME'
-    date_achat DATE, 
-    duree_vie_theorique_ans INT DEFAULT 10, 
-    
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Index pour récupérer rapidement les appareils d'un logement
-CREATE INDEX IF NOT EXISTS idx_electromenager_logement_id ON electromenager(logement_id);
-
--- Création d'un type pour catégoriser 
+-- 8. Création du type pour électroménager
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'type_electromenager_enum') THEN
@@ -153,7 +137,32 @@ BEGIN
     END IF;
 END$$;
 
--- Fonction pour calculer les émissions de CO2
+-- 9. Table electromenager
+CREATE TABLE IF NOT EXISTS electromenager (
+    id SERIAL PRIMARY KEY,
+    logement_id INT NOT NULL REFERENCES logement(id) ON DELETE CASCADE,
+    nom VARCHAR(255) NOT NULL,
+    type type_electromenager_enum NOT NULL,
+    marque VARCHAR(100),
+    modele VARCHAR(100), 
+    
+    consommation_kwh_an FLOAT DEFAULT 0, 
+    consommation_eau_an FLOAT DEFAULT 0, 
+    classe_energetique VARCHAR(5),
+
+    co2_fabrication_kg FLOAT DEFAULT 0, 
+    co2_usage_kg_an FLOAT DEFAULT 0,
+    
+    source_donnees VARCHAR(50) DEFAULT 'Manuel',
+    date_achat DATE, 
+    duree_vie_theorique_ans INT DEFAULT 10, 
+    
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_electromenager_logement_id ON electromenager(logement_id);
+
+-- 10. Fonctions et Triggers
 CREATE OR REPLACE FUNCTION calculer_emission_co2()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -177,7 +186,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger pour mettre à jour les émissions de CO2
 DO $$
 BEGIN
     IF NOT EXISTS (
@@ -190,7 +198,7 @@ BEGIN
     END IF;
 END $$;
 
-
+-- 11. Migrations structure
 DO $$
 BEGIN
     IF EXISTS (
@@ -213,5 +221,3 @@ BEGIN
         ALTER TABLE users ADD COLUMN google_id VARCHAR(255) UNIQUE;
     END IF;
 END $$;
-
-

@@ -11,6 +11,7 @@ import LifestylePage from '@/pages/mode2vie';
 import ForgotPasswordForm from '@/components/auth/ForgotPasswordForm';
 import ResetPasswordForm from '@/components/auth/ResetPasswordForm';
 import Carbobot from '@/pages/carbobot.tsx';
+import LogementsPage from '@/pages/logement.tsx';
 
 const AppRoutes = () => {
     return (
@@ -25,6 +26,7 @@ const AppRoutes = () => {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/vehicles" element={<VehiclesPage />} />
                 <Route path="/trips" element={<TripsPage />} />
+                <Route path="/logements" element={<LogementsPage />} />
                 <Route path="/mode2vie" element={<LifestylePage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/carbobot" element={<Carbobot />} />
