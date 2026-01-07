@@ -1,5 +1,5 @@
 # =========================
-# deps
+# deps (on installe aussi les devDeps pour compiler TS)
 # =========================
 FROM node:20-alpine AS deps
 WORKDIR /app/backend
@@ -9,7 +9,7 @@ COPY backend/package.json backend/package-lock.json* ./
 RUN npm install --include=dev
 
 # =========================
-# build
+# build (compile TS + inclut shared)
 # =========================
 FROM node:20-alpine AS build
 WORKDIR /app
@@ -30,16 +30,18 @@ RUN npx tsc -p tsconfig.docker.json
 # =========================
 FROM node:20-alpine AS runner
 WORKDIR /app
-ENV NODE_ENV=production
 
-# node_modules backend
+# deps runtime (dans /app/backend)
 COPY --from=deps /app/backend/node_modules ./backend/node_modules
 COPY backend/package.json ./backend/package.json
 
 # Optionnel mais propre : on retire les deps de dev
 WORKDIR /app/backend
 RUN npm prune --omit=dev
+
+# IMPORTANT: rendre les modules trouvables depuis /app/dist/...
 WORKDIR /app
+RUN ln -s /app/backend/node_modules /app/node_modules
 
 # JS compilé (inclut dist/backend/... + dist/shared/...)
 COPY --from=build /app/backend/dist ./dist
