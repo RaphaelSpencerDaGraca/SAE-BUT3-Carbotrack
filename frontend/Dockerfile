@@ -1,13 +1,16 @@
-# frontend/Dockerfile
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY package*.json ./
+
+# Installer deps frontend (avec lockfile si présent)
+COPY package.json package-lock.json* ./
 RUN npm ci
+
+# Copier le reste
 COPY . .
 
+# Build Vite avec API sur /api
 ARG VITE_API_URL=/api
 ENV VITE_API_URL=$VITE_API_URL
-
 RUN npm run build
 
 FROM nginx:alpine

@@ -1,34 +1,44 @@
-# backend/Dockerfile (build context = repo root)
-
+# =========================
+# deps
+# =========================
 FROM node:20-alpine AS deps
 WORKDIR /app/backend
-COPY backend/package*.json ./
-RUN npm ci || npm install
 
+# Installer les deps backend (avec lockfile si présent)
+COPY backend/package.json backend/package-lock.json* ./
+RUN npm ci
+
+# =========================
+# build
+# =========================
 FROM node:20-alpine AS build
 WORKDIR /app
 
-# deps
+# Réutiliser les node_modules installés
 COPY --from=deps /app/backend/node_modules ./backend/node_modules
 
-# sources
+# Copier le code backend + shared
 COPY backend ./backend
 COPY shared ./shared
 
-# build
+# Compiler avec une config dédiée Docker (inclut shared)
 WORKDIR /app/backend
-RUN npm run build
+RUN npx tsc -p tsconfig.docker.json
 
+# =========================
+# runner
+# =========================
 FROM node:20-alpine AS runner
+WORKDIR /app
 ENV NODE_ENV=production
-WORKDIR /app/backend
 
-COPY --from=build /app/backend/package*.json ./
-COPY --from=build /app/backend/node_modules ./node_modules
+# node_modules backend
+COPY --from=deps /app/backend/node_modules ./backend/node_modules
+
+# JS compilé (inclut dist/backend/... + dist/shared/...)
 COPY --from=build /app/backend/dist ./dist
 
-# On garde shared à côté, au cas où le JS runtime en a besoin
-COPY --from=build /app/shared ../shared
-
 EXPOSE 3001
-CMD ["node", "dist/server.js"]
+
+# On démarre le serveur compilé (chemin issu de tsconfig.docker.json)
+CMD ["node", "dist/backend/src/server.js"]
