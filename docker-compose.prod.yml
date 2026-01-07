@@ -1,9 +1,8 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:15-alpine
     container_name: carbotrack_db
+    env_file: .env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -18,22 +17,21 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: carbotrack_backend
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      DB_HOST: db
+      DB_PORT: "5432"
     ports:
       - "127.0.0.1:3001:3001"
-    environment:
-      - NODE_ENV=production
-      - PORT=3001
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
-      - JWT_SECRET=${JWT_SECRET}
     depends_on:
       db:
         condition: service_healthy
@@ -43,8 +41,8 @@ services:
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: frontend/Dockerfile
       args:
         VITE_API_URL: /api
     container_name: carbotrack_frontend
