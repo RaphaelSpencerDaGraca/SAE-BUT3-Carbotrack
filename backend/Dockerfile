@@ -6,7 +6,7 @@ WORKDIR /app/backend
 
 # Installer les deps backend (avec lockfile si présent)
 COPY backend/package.json backend/package-lock.json* ./
-RUN npm install
+RUN npm install --include=dev
 
 # =========================
 # build
