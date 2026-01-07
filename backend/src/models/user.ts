@@ -1,6 +1,6 @@
 //backend\src\models\user.ts
 import type { PoolClient } from "pg";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import pool from "../config/db";
 
 export interface DBUser {
