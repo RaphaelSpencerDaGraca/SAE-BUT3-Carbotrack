@@ -6,7 +6,7 @@ WORKDIR /app/backend
 
 # Installer les deps backend (avec lockfile si présent)
 COPY backend/package.json backend/package-lock.json* ./
-RUN npm ci
+RUN npm install
 
 # =========================
 # build
@@ -34,6 +34,12 @@ ENV NODE_ENV=production
 
 # node_modules backend
 COPY --from=deps /app/backend/node_modules ./backend/node_modules
+COPY backend/package.json ./backend/package.json
+
+# Optionnel mais propre : on retire les deps de dev
+WORKDIR /app/backend
+RUN npm prune --omit=dev
+WORKDIR /app
 
 # JS compilé (inclut dist/backend/... + dist/shared/...)
 COPY --from=build /app/backend/dist ./dist
