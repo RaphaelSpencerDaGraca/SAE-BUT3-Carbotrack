@@ -89,6 +89,15 @@ const Dashboard = () => {
     const firstName =
         typeof rawName === "string" ? rawName.split(" ")[0] : t("common.user");
 
+    const latestTrips = [...trips]
+        .sort((a: any, b: any) => {
+            const da = new Date(a.date ?? 0).getTime();
+            const db = new Date(b.date ?? 0).getTime();
+            return db - da;
+        })
+        .slice(0, 3);
+
+
     return (
         <main className="min-h-screen bg-slate-950 text-slate-50 px-4 pb-24 pt-6">
             <div className="mx-auto max-w-5xl space-y-6">
@@ -144,12 +153,24 @@ const Dashboard = () => {
                         </div>
 
                         <p className="mt-3 text-sm text-slate-400">
-                            {t("dashboard.latestTrips.text")}
+                            Voici les trajets les plus récents enregistrés pour votre compte.
                         </p>
 
                         <ul className="mt-4 space-y-2 text-xs text-slate-400">
-                            <li>{t("dashboard.latestTrips.item.placeholder1")}</li>
-                            <li>{t("dashboard.latestTrips.item.placeholder2")}</li>
+                            {tripsLoading && (
+                                <li>{t("dashboard.latestTrips.loading") ?? "Chargement des trajets..."}</li>
+                            )}
+
+                            {!tripsLoading && latestTrips.length === 0 && (
+                                <li>{t("dashboard.latestTrips.empty") ?? "Aucun trajet pour le moment."}</li>
+                            )}
+
+                            {!tripsLoading &&
+                                latestTrips.map((trip: any) => (
+                                    <li key={trip.id}>
+                                        {trip.fromCity} → {trip.toCity} • {trip.distanceKm} km
+                                    </li>
+                                ))}
                         </ul>
                     </div>
 
