@@ -4,6 +4,8 @@ import { useAuth } from "../hooks/useAuth";
 import { useTranslation } from "@/language/useTranslation";
 import { getVehicles } from "@/services/vehicleService";
 import type { Vehicle } from "../../../shared/vehicle.type";
+import type { Trip } from "../../../shared/trip.type";
+import { getTrips } from "@/services/tripService";
 
 type StatCardProps = {
     label: string;
@@ -28,10 +30,13 @@ const Dashboard = () => {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [vehiclesLoading, setVehiclesLoading] = useState(false);
 
+    const [trips, setTrips] = useState<Trip[]>([]);
+    const [tripsLoading, setTripsLoading] = useState(false);
+
     useEffect(() => {
         let mounted = true;
 
-        async function loadVehicles() {
+        (async () => {
             try {
                 setVehiclesLoading(true);
                 const data = await getVehicles();
@@ -44,9 +49,31 @@ const Dashboard = () => {
             } finally {
                 if (mounted) setVehiclesLoading(false);
             }
-        }
+        })();
 
-        loadVehicles();
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        let mounted = true;
+
+        (async () => {
+            try {
+                setTripsLoading(true);
+                const data = await getTrips();
+                if (!mounted) return;
+                setTrips(data);
+            } catch (e) {
+                console.error("Erreur chargement trajets (dashboard):", e);
+                if (!mounted) return;
+                setTrips([]);
+            } finally {
+                if (mounted) setTripsLoading(false);
+            }
+        })();
+
         return () => {
             mounted = false;
         };
@@ -95,7 +122,7 @@ const Dashboard = () => {
                     />
                     <StatCard
                         label={t("dashboard.stats.trips.label")}
-                        value="24"
+                        value={tripsLoading ? "..." : String(trips.length)}
                         helper={t("dashboard.stats.trips.helper")}
                     />
                     <StatCard
