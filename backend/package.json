@@ -7,7 +7,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "seed:test-user": "npx ts-node ./scripts/seedTestUser.ts",
-    "test:login:server": "npx ts-node ./scripts/testLogin.ts"
+    "test:login:server": "npx ts-node ./scripts/testLogin.ts",
+    "import:car-labelling": "ts-node scripts/importCarLabelling.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
@@ -16,7 +17,8 @@
     "express": "^4.21.1",
     "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
