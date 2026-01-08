@@ -19,7 +19,8 @@ export const translations: Record<Language, Record<string, string>> = {
         "nav.trips": "Trajets",
         "nav.lifestyle": "Mode de vie",
         "nav.profile": "Profil",
-        "nav.caarbobot": "Carbobot",
+        "nav.carbobot": "Carbobot",
+        "nav.logement": "Logement",
 
         "lifestyle.loading": "Chargement...",
         "lifestyle.errorPrefix": "Erreur : ",
@@ -75,6 +76,14 @@ export const translations: Record<Language, Record<string, string>> = {
         "profile.preferences.title": "Préférences",
         "profile.preferences.text":
             "Ici on pourra gérer les unités (km / miles), le thème, les notifications, etc.",
+        "profile.genre":"Genre",
+        "profile.ModifierInfo":"Modifier mes informations",
+        "profile.SupprimerCompte":"Supprimer mon compte",
+        "profile.ConfirmerSuppression":"Vous voulez vraiment supprimer votre compte ?",
+        "profile.actualPassword":"Mot de passe actuel",
+        "profile.newPassword":"Nouveau mot de passe",
+        "profile.cancel":"Annuler",
+        "profile.validate":"Valider",
 
         "trips.title": "Trajets",
         "trips.header": "Historique des trajets",
@@ -122,7 +131,10 @@ export const translations: Record<Language, Record<string, string>> = {
         "vehicles.fuel.gpl": "GPL",
         "vehicles.fuel.other": "Autre",
         "vehicles.actions.edit": "Modifier",
-        "vehicles.actions.delete": "Supprimer"
+        "vehicles.actions.delete": "Supprimer",
+
+        "carbobot.message":"Bonjour ! Je suis CarboBot. Pose-moi une question sur ton empreinte carbone 🌱",
+        "carbobot.send":"Envoyer"
     },
     en: {
         "common.language.fr": "French",

@@ -8,16 +8,15 @@ import { LogementInput } from "@/components/calcLifestyle/types";
 
 // --- FONCTION UTILITAIRE POUR RÉCUPÉRER L'ID UTILISATEUR ---
 const getCurrentUserId = (): string | null => {
-    // 1. Essayer la clé directe
+
     const directId = localStorage.getItem('userId');
     if (directId) return directId;
 
-    // 2. Essayer dans l'objet 'user' (souvent utilisé par les contextes Auth)
+
     const userJson = localStorage.getItem('user');
     if (userJson) {
         try {
             const userObj = JSON.parse(userJson);
-            // On cherche id ou user_id
             return userObj.id || userObj.user_id || null;
         } catch (e) {
             console.error("Erreur parsing user JSON", e);
@@ -87,7 +86,7 @@ const LogementsPage = () => {
 
     // Charger les logements au montage
     useEffect(() => {
-        const userId = getCurrentUserId(); // Utilisation de la nouvelle fonction
+        const userId = getCurrentUserId(); 
         if (userId) fetchLogements(userId);
     }, [fetchLogements]);
 
@@ -109,8 +108,6 @@ const LogementsPage = () => {
     const handleCreateLogement = async (e: React.FormEvent) => {
         e.preventDefault();
         setFormError(null);
-
-        // Correction ici : Utilisation de la fonction robuste
         const userId = getCurrentUserId();
         
         if (!userId) {

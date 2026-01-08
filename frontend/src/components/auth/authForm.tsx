@@ -127,14 +127,14 @@ const AuthForm: React.FC<AuthFormProps> = ({ type, onSubmit }) => {
                         {isLoading ? (isRegister ? "Inscription…" : "Connexion…") : (isRegister ? "Sign Up" : "Sign In")}
                     </Button>
 
-                    {/* or continue with */}
+                    {/*
                     <div className="flex items-center gap-3 my-2">
                         <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
                         <span className="text-xs text-gray-500">or continue with</span>
                         <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
                     </div>
 
-                    {/* boutons sociaux (mock) */}
+                    
                     <div className="grid grid-cols-2 gap-3">
                         <button type="button" className="rounded-lg border border-gray-300 dark:border-gray-700 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800">
                             Google
@@ -142,7 +142,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ type, onSubmit }) => {
                         <button type="button" className="rounded-lg border border-gray-300 dark:border-gray-700 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800">
                             Facebook
                         </button>
-                    </div>
+                    </div>*/}
 
                     {/* liens */}
                     <div className="mt-3 text-center">
@@ -153,23 +153,13 @@ const AuthForm: React.FC<AuthFormProps> = ({ type, onSubmit }) => {
                             )}
                         <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                             {isRegister ? (
-                                <>Already have an account? <a href="/login" className="text-green-600 hover:underline">Sign In</a></>
+                                <>Vous avez déjà un compte  ? <a href="/login" className="text-green-600 hover:underline">Connectez vous</a></>
                             ) : (
-                                <>Don’t have an account? <a href="/register" className="text-green-600 hover:underline">Sign Up</a></>
+                                <>Vous n'avez pas de compte ? <a href="/register" className="text-green-600 hover:underline">Inscrivez vous</a></>
                             )}
                         </div>
                     </div>
                 </form>
-
-                <p className="mt-6 text-center text-xs text-gray-400">
-                    <a href="/" className="hover:underline">Go to Landing Page</a>
-                </p>
-            </div>
-
-            {/* mini note RGPD ou autre (optionnel) */}
-            {/* <p className="mt-4 text-center text-xs text-gray-400">Protégé par chiffrement de mot de passe • Données sécurisées</p> */}
-            <div className="mt-4 text-center">
-                <AuthSwitcher currentMode={isRegister ? 'register' : 'login'} />
             </div>
         </div>
     );

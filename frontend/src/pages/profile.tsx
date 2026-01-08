@@ -200,7 +200,7 @@ const ProfilePage = () => {
                         </section>
 
                         <section className="rounded-2xl border border-red-900/30 bg-red-900/10 p-5">
-                            <h2 className="text-sm font-medium text-red-200 mb-2">Zone Danger</h2>
+                            <h2 className="text-sm font-medium text-red-200 mb-2">Vous voulez vraiment partir ? </h2>
                             {!showDeleteConfirm ? (
                                 <button
                                     onClick={() => setShowDeleteConfirm(true)}
