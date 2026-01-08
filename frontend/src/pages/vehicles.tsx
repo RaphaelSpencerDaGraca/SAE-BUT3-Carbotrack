@@ -3,8 +3,9 @@
 import type { Vehicle } from "../../../shared/vehicle.type.ts";
 import type { ChangeEvent, FormEvent } from "react";
 import { useEffect, useState } from "react";
-import { getVehicles, createVehicle } from "@/services/vehicleService";
+import { getVehicles, createVehicle, estimateConsumption } from "@/services/vehicleService";
 import { useTranslation } from "@/language/useTranslation";
+
 
 type SummaryCardProps = {
     label: string;
@@ -77,6 +78,7 @@ const VehiclesPage = () => {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [loading, setLoading] = useState(true);
     const [errorKey, setErrorKey] = useState<string | null>(null);
+    const [estimating, setEstimating] = useState(false);
 
     // --- état formulaire ---
     const [isCreating, setIsCreating] = useState(false);
@@ -91,34 +93,35 @@ const VehiclesPage = () => {
         consumptionLPer100: ""
     });
 
-    useEffect(() => {
-        let cancelled = false;
+    const [lastUnit, setLastUnit] =
+        useState<"L/100km" | "kWh/100km" | null>(null);
 
-        async function fetchVehicles() {
+
+    useEffect(() => {
+        let mounted = true;
+
+        async function load() {
             try {
                 setLoading(true);
                 setErrorKey(null);
 
                 const data = await getVehicles();
-                if (!cancelled) {
-                    setVehicles(data);
-                }
-            } catch (err: any) {
-                if (cancelled) return;
+                if (!mounted) return;
+
+                setVehicles(data); // ✅ plus d'erreur TS
+            } catch (err) {
                 console.error("Erreur lors du chargement des véhicules :", err);
+                if (!mounted) return;
                 setErrorKey("vehicles.error.unableToLoad");
                 setVehicles([]);
             } finally {
-                if (!cancelled) {
-                    setLoading(false);
-                }
+                if (mounted) setLoading(false);
             }
         }
 
-        fetchVehicles();
-
+        load();
         return () => {
-            cancelled = true;
+            mounted = false;
         };
     }, []);
 
@@ -199,6 +202,31 @@ const VehiclesPage = () => {
         }
     }
 
+    async function handleEstimate() {
+        if (!form.name.trim() || !form.fuelType) return;
+
+        try {
+            setEstimating(true);
+            setFormError(null);
+
+            const data = await estimateConsumption(form.name.trim(), form.fuelType);
+            setLastUnit(data.unit);
+
+            setForm((prev) => ({
+                ...prev,
+                name: data.matchedLabel || prev.name,
+                type: data.type ? data.type : prev.type,
+                consumptionLPer100: String(data.consumptionLPer100Max),
+            }));
+        } catch (err) {
+            // 404 => pas trouvé : on ne bloque pas l’utilisateur
+            console.warn("Estimation conso impossible:", err);
+        } finally {
+            setEstimating(false);
+        }
+    }
+
+
     return (
         <main className="min-h-screen bg-slate-950 text-slate-50 px-4 pb-24 pt-6">
             <div className="mx-auto max-w-5xl space-y-6">
@@ -257,6 +285,10 @@ const VehiclesPage = () => {
                                     name="name"
                                     value={form.name}
                                     onChange={handleChange}
+                                    onBlur={() => {
+                                        // Auto-estime seulement si le champ conso est encore vide (pour ne pas écraser une valeur manuelle)
+                                        if (form.consumptionLPer100 === "") handleEstimate();
+                                    }}
                                     required
                                     className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
                                     placeholder="Ex : Clio Diesel"
@@ -314,20 +346,34 @@ const VehiclesPage = () => {
                             </div>
 
                             {/* Consommation */}
+                            {/* Consommation */}
                             <div>
                                 <label className="block text-xs font-medium text-slate-300 mb-1">
                                     {t("vehicles.form.consumption") ?? "Conso (L / 100 km)"}
                                 </label>
-                                <input
-                                    name="consumptionLPer100"
-                                    type="number"
-                                    step="0.1"
-                                    min="0"
-                                    value={form.consumptionLPer100}
-                                    onChange={handleChange}
-                                    className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
-                                    placeholder="Ex : 6.2"
-                                />
+
+                                <div className="flex gap-2">
+                                    <input
+                                        name="consumptionLPer100"
+                                        type="number"
+                                        step="0.1"
+                                        min="0"
+                                        value={form.consumptionLPer100}
+                                        onChange={handleChange}
+                                        className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                                        placeholder="Ex : 6.2"
+                                    />
+
+                                    <button
+                                        type="button"
+                                        onClick={handleEstimate}
+                                        disabled={estimating || !form.name.trim()}
+                                        className="shrink-0 rounded-md border border-slate-700 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 disabled:opacity-60"
+                                        title="Auto-remplir depuis le dataset"
+                                    >
+                                        {estimating ? "Auto…" : "Auto"}
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Boutons */}

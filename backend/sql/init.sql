@@ -49,6 +49,21 @@ create table if not exists vehicles (
     created_at timestamp default now()
 );
 
+CREATE TABLE IF NOT EXISTS car_labelling (
+                                             id SERIAL PRIMARY KEY,
+                                             body_type TEXT,
+                                             model_label TEXT,
+                                             energy TEXT,
+                                             gearbox TEXT,
+                                             conso_min NUMERIC(10,2),
+                                             conso_max NUMERIC(10,2),
+                                             conso_unit TEXT,
+                                             created_at TIMESTAMP DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_car_labelling_model_label ON car_labelling (model_label);
+CREATE INDEX IF NOT EXISTS idx_car_labelling_energy ON car_labelling (energy);
+
 -- 4. Table des trajets
 create table if not exists trips (
     id serial primary key,
