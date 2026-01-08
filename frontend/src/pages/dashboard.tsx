@@ -1,6 +1,9 @@
 //frontend\src\pages\dashboard.tsx
+import { useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useTranslation } from "@/language/useTranslation";
+import { getVehicles } from "@/services/vehicleService";
+import type { Vehicle } from "../../../shared/vehicle.type";
 
 type StatCardProps = {
     label: string;
@@ -21,6 +24,34 @@ const StatCard = ({ label, value, helper }: StatCardProps) => {
 const Dashboard = () => {
     const { user, logout } = useAuth();
     const { t } = useTranslation();
+
+    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+    const [vehiclesLoading, setVehiclesLoading] = useState(false);
+
+    useEffect(() => {
+        let mounted = true;
+
+        async function loadVehicles() {
+            try {
+                setVehiclesLoading(true);
+                const data = await getVehicles();
+                if (!mounted) return;
+                setVehicles(data);
+            } catch (e) {
+                console.error("Erreur chargement véhicules (dashboard):", e);
+                if (!mounted) return;
+                setVehicles([]);
+            } finally {
+                if (mounted) setVehiclesLoading(false);
+            }
+        }
+
+        loadVehicles();
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
 
     const rawName =
         (user as any)?.pseudo ??
@@ -59,7 +90,7 @@ const Dashboard = () => {
                 <section className="grid gap-4 md:grid-cols-3">
                     <StatCard
                         label={t("dashboard.stats.vehicles.label")}
-                        value="3"
+                        value={vehiclesLoading ? "..." : String(vehicles.length)}
                         helper={t("dashboard.stats.vehicles.helper")}
                     />
                     <StatCard
