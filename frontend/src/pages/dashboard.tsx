@@ -97,6 +97,11 @@ const Dashboard = () => {
         })
         .slice(0, 3);
 
+    const totalCo2Kg = trips.reduce((sum, trip) => {
+        const v = Number((trip as any).co2Kg ?? 0);
+        return sum + (Number.isFinite(v) ? v : 0);
+    }, 0);
+
 
     return (
         <main className="min-h-screen bg-slate-950 text-slate-50 px-4 pb-24 pt-6">
@@ -136,7 +141,7 @@ const Dashboard = () => {
                     />
                     <StatCard
                         label={t("dashboard.stats.co2.label")}
-                        value="142 kg"
+                        value={tripsLoading ? "..." : `${totalCo2Kg.toFixed(2)} kg`}
                         helper={t("dashboard.stats.co2.helper")}
                     />
                 </section>
