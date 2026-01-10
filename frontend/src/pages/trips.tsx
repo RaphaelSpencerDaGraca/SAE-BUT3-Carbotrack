@@ -23,7 +23,7 @@ const TripsPage = () => {
     const [error, setError] = useState<string | null>(null);
     const [openModal, setOpenModal] = useState(false);
 
-    const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3001/api';
+    const API_BASE = import.meta.env.VITE_API_URL ?? '/api';
 
     const getToken = () => localStorage.getItem('token');
 
@@ -47,7 +47,6 @@ const TripsPage = () => {
     };
 
     const fetchVehicles = async () => {
-        // ton vehicleService est déjà branché (et normalement déjà token-aware si tu utilises api.js)
         const v = await getVehicles();
         setVehicles(v);
     };
@@ -122,9 +121,9 @@ const TripsPage = () => {
 
                 <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
                     <div className="flex flex-wrap items-center gap-3">
-            <span className="text-xs font-medium text-slate-400">
-              {t("trips.filters.label")}
-            </span>
+                        <span className="text-xs font-medium text-slate-400">
+                            {t("trips.filters.label")}
+                        </span>
 
                         <button className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs text-slate-200 hover:border-emerald-400 hover:text-emerald-200">
                             {t("trips.filters.last7Days")}
@@ -138,7 +137,6 @@ const TripsPage = () => {
                     </div>
                 </section>
 
-                {/* Liste des trajets */}
                 <section className="rounded-2xl border border-slate-800 bg-slate-900/40">
                     <div className="border-b border-slate-800 px-4 py-3 flex items-center justify-between">
                         <h2 className="text-sm font-medium text-slate-100">
@@ -151,12 +149,11 @@ const TripsPage = () => {
                             <span className="text-xs text-red-400">Erreur</span>
                         ) : (
                             <span className="text-xs text-slate-500">
-                {trips.length} {t("trips.list.countSuffix")}
-              </span>
+                                {trips.length} {t("trips.list.countSuffix")}
+                            </span>
                         )}
                     </div>
 
-                    {/* États : chargement / erreur / vide / liste */}
                     {loading ? (
                         <div className="px-4 py-10 text-center text-sm text-slate-400">
                             Chargement des trajets...
@@ -185,8 +182,8 @@ const TripsPage = () => {
                                         </p>
                                         {trip.tag && (
                                             <span className="inline-flex rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-300">
-                        {trip.tag}
-                      </span>
+                                                {trip.tag}
+                                            </span>
                                         )}
                                     </div>
 
