@@ -25,6 +25,9 @@ services:
     container_name: carbotrack-backend
     restart: unless-stopped
     env_file: .env
+    environment:
+      DB_HOST: db
+      NODE_ENV: production
     depends_on:
       db:
         condition: service_healthy
