@@ -17,7 +17,7 @@ export interface IProduit {
   date_maj: string;
 }
 
-// Méthodes pour interagir avec la base de données
+
 export const getProduitById = async (id: number): Promise<IProduit | null> => {
     const res = await pool.query('SELECT * FROM produit WHERE id = $1', [id]);
     return res.rows[0] || null;
@@ -50,5 +50,23 @@ export const deleteProduit = async (id: number): Promise<boolean> => {
 
 export const getAllProduits = async (): Promise<IProduit[]> => {
     const res = await pool.query('SELECT * FROM produit');
+    return res.rows;
+};
+
+export const searchProduits = async (term: string, categorie?: string): Promise<IProduit[]> => {
+    let query = `
+        SELECT * FROM produit 
+        WHERE (nom ILIKE $1 OR description ILIKE $1)
+    `;
+    const values: any[] = [`%${term}%`];
+
+    if (categorie) {
+        query += ` AND categorie = $2`;
+        values.push(categorie);
+    }
+
+    query += ` LIMIT 20`;
+
+    const res = await pool.query(query, values);
     return res.rows;
 };

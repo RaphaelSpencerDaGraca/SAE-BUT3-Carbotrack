@@ -27,7 +27,7 @@ export const translations: Record<Language, Record<string, string>> = {
         "lifestyle.section.calculator": "Calculateur d'empreinte carbone",
         "lifestyle.title": "Évaluez votre impact climatique",
         "lifestyle.subtitle":
-            "Renseignez vos habitudes pour estimer votre empreinte carbone et découvrir des pistes d'amélioration.",
+            "Renseignez vos habitudes alimentaires pour estimer votre empreinte carbone et découvrir des pistes d'amélioration.",
         "lifestyle.info.title": "Pourquoi calculer son empreinte ?",
         "lifestyle.info.text1":
             "Comprendre son impact carbone est la première étape pour agir. Ce calculateur estime vos émissions basées sur vos choix quotidiens.",
