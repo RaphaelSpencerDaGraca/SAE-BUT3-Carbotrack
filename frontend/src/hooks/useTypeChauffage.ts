@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { type_chauffage } from '../../../shared/typeChauffage';
 
-const API_URL = 'http://localhost:3001/api';
+const API_BASE = import.meta.env.VITE_API_URL ?? '/api';
 
 export const useTypesChauffage = () => {
   const [typesChauffage, setTypesChauffage] = useState<type_chauffage[]>([]);
@@ -12,7 +12,7 @@ export const useTypesChauffage = () => {
   useEffect(() => {
     const fetchTypesChauffage = async () => {
       try {
-        const response = await fetch(`${API_URL}/type_chauffage`);
+        const response = await fetch(`${API_BASE}/type_chauffage`);
         if (!response.ok) {
           const text = await response.text();
           console.error('fetch /type_chauffage failed', response.status, text);

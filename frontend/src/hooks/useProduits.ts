@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react';
 import { IProduit } from '../types/produit';
 
+const API_BASE = import.meta.env.VITE_API_URL ?? '/api';
+
 export const useProduits = () => {
   const [produits, setProduits] = useState<IProduit[]>([]);
   const [loading, setLoading] = useState(true);
@@ -10,7 +12,7 @@ export const useProduits = () => {
   useEffect(() => {
     const fetchProduits = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/produits');
+        const response = await fetch(`${API_BASE}/produits`);
         if (!response.ok) throw new Error('Erreur lors de la récupération des produits');
         const data: IProduit[] = await response.json();
         setProduits(data);

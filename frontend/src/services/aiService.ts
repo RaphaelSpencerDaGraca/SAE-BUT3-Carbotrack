@@ -1,10 +1,11 @@
 // frontend/src/services/aiService.ts
 
-const API_URL = "http://localhost:3001/api/ai/chat"; 
+const API_BASE = import.meta.env.VITE_API_URL ?? '/api';
+const CHAT_ENDPOINT = `${API_BASE}/ai/chat`;
 
 export const sendMessageToAi = async (prompt: string): Promise<string> => {
   try {
-    const response = await fetch(API_URL, {
+    const response = await fetch(CHAT_ENDPOINT, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -17,9 +18,7 @@ export const sendMessageToAi = async (prompt: string): Promise<string> => {
     }
 
     const data = await response.json();
-    
-
-    return data.response; 
+    return data.response;
   } catch (error) {
     console.error("Erreur IA:", error);
     throw error;
