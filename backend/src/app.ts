@@ -23,32 +23,42 @@ const app = express();
  * Origines autorisées :
  * - Dev Vite : http://localhost:5173
  * - Front docker prod local : http://localhost:8080
+ * - Prod domain : https://1234910.xyz (+ www)
  * + option: CORS_ORIGIN dans .env (séparé par des virgules)
  */
-const defaultOrigins = ['http://localhost:5173', 'http://localhost:8080'];
+const defaultOrigins = [
+    'http://localhost:5173',
+    'http://localhost:8080',
+    'https://1234910.xyz',
+    'https://www.1234910.xyz',
+];
 
 const envOrigins =
     process.env.CORS_ORIGIN?.split(',')
         .map((s) => s.trim())
         .filter(Boolean) ?? [];
 
-const allowedOrigins = envOrigins.length > 0 ? envOrigins : defaultOrigins;
+// On merge (au lieu de remplacer), comme ça tu ne te tires pas une balle dans le pied
+// si tu mets CORS_ORIGIN en prod et que tu veux quand même tester en local.
+const allowedOrigins = Array.from(new Set([...defaultOrigins, ...envOrigins]));
 
-app.use(
-    cors({
-        origin: (origin, callback) => {
-            // Requêtes sans Origin (curl, serveur, etc.)
-            if (!origin) return callback(null, true);
+const corsOptions: cors.CorsOptions = {
+    origin: (origin, callback) => {
+        // Requêtes sans Origin (curl, serveur, etc.)
+        if (!origin) return callback(null, true);
 
-            if (allowedOrigins.includes(origin)) return callback(null, true);
+        if (allowedOrigins.includes(origin)) return callback(null, true);
 
-            return callback(new Error(`CORS blocked for origin: ${origin}`));
-        },
-        credentials: true,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    })
-);
+        return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+};
+
+app.use(cors(corsOptions));
+// Optionnel mais souvent utile pour les preflights
+app.options('*', cors(corsOptions));
 
 app.use(express.json());
 app.use(requestLogger);
