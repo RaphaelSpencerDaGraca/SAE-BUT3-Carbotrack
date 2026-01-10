@@ -1,17 +1,18 @@
-//backend\src\routes\ProduitRouter.ts
+// backend/src/routes/ProduitRouter.ts
 import { Router } from 'express';
-import { getProduits, getProduit, createNewProduit, updateExistingProduit, deleteExistingProduit } from '../controller/ProduitController';
-import { authenticate } from '../middlewares/auth'; 
 
-const routerProduits = Router();
+import { getProduits, getProduit, createNewProduit, updateExistingProduit, deleteExistingProduit,searchProduitsController} from '../controller/ProduitController';
 
-// Routes publiques
-routerProduits.get('/', getProduits);
-routerProduits.get('/:id', getProduit);
+const router = Router();
 
-// Routes protégées
-routerProduits.post('/', authenticate, createNewProduit);
-routerProduits.put('/:id', authenticate, updateExistingProduit);
-routerProduits.delete('/:id', authenticate, deleteExistingProduit);
+router.get('/search', searchProduitsController); 
 
-export default routerProduits;
+router.get('/', getProduits);
+
+router.get('/:id', getProduit); 
+
+router.post('/', createNewProduit);
+router.put('/:id', updateExistingProduit);
+router.delete('/:id', deleteExistingProduit);
+
+export default router;

@@ -1,6 +1,30 @@
-//backend\src\controller\ProduitController.ts
+// backend/src/controller/ProduitController.ts
 import { Request, Response } from 'express';
-import { getProduitById, createProduit, updateProduit, deleteProduit, getAllProduits, IProduit } from '../models/produit';
+import { getProduitById, createProduit, updateProduit, deleteProduit, getAllProduits, searchProduits} from '../models/produit';
+
+
+export const searchProduitsController = async (req: Request, res: Response) => {
+    try {
+        const { q, categorie } = req.query;
+        if (!q || typeof q !== 'string') {
+            return res.json([]);
+        }
+        let categoryFilter: string | undefined = undefined;
+
+        if (typeof categorie === 'string') {
+            const catLower = categorie.toLowerCase();
+            if (catLower !== 'alimentation') {
+                categoryFilter = categorie;
+            }
+        }
+        const produits = await searchProduits(q, categoryFilter);
+        res.json(produits);
+    } catch (error) {
+        console.error('Erreur lors de la recherche de produits:', error);
+        res.status(500).json({ error: 'Erreur serveur lors de la recherche' });
+    }
+};
+
 
 export const getProduits = async (req: Request, res: Response) => {
     try {

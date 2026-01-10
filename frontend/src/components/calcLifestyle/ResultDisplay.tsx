@@ -7,57 +7,87 @@ interface ResultDisplayProps {
 }
 
 export const ResultDisplay: React.FC<ResultDisplayProps> = ({ total, breakdown }) => {
-  // Couleurs pour les catégories
   const categoryColors: Record<string, string> = {
-    logement: "text-amber-400",
-    alimentation: "text-green-400",
-    loisirs: "text-purple-400",
+    logement: "bg-amber-500 text-amber-500",
+    alimentation: "bg-emerald-500 text-emerald-500",
+    loisirs: "bg-purple-500 text-purple-500",
+    transport: "bg-blue-500 text-blue-500"
+  };
+
+  const getIntensityColor = (score: number) => {
+      if (score < 50) return 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10';
+      if (score < 150) return 'text-amber-400 border-amber-500/30 bg-amber-500/10';
+      return 'text-red-400 border-red-500/30 bg-red-500/10';
   };
 
   return (
-    <div className="rounded-lg border border-brand-500/30 bg-slate-900/30 p-4">
-      <div className="flex items-baseline gap-2">
-        <h3 className="text-lg font-medium text-brand-100">Votre empreinte carbone estimée :</h3>
-        <span className="text-2xl font-bold text-brand-500">{total.toFixed(1)} kg CO₂</span>
+    <div className="mt-8 overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
+      {/* Header Resultat */}
+      <div className="relative p-6 sm:p-8 text-center border-b border-slate-800 bg-gradient-to-b from-slate-800/50 to-transparent">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-2">
+            Empreinte Mensuelle Estimée
+        </h3>
+        <div className="flex items-baseline justify-center gap-2">
+            <span className={`text-5xl sm:text-6xl font-black tracking-tight ${getIntensityColor(total).split(' ')[0]}`}>
+                {total.toFixed(1)}
+            </span>
+            <span className="text-xl font-medium text-slate-500">kg CO₂</span>
+        </div>
+        
+        {/* Badge annuel */}
+        <div className={`mt-4 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium ${getIntensityColor(total)}`}>
+            <span>≈ {(total * 12).toFixed(0)} kg CO₂ / an</span>
+        </div>
       </div>
 
-      <div className="mt-4 space-y-2">
-        {Object.entries(breakdown).map(([key, value]) => (
-          <div key={key} className="flex justify-between">
-            <div className="flex items-center gap-2">
-              <span className="capitalize text-slate-300">{key}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-400">{value.toFixed(1)} kg CO₂</span>
-              <div className="h-2 w-16 rounded-full bg-slate-700">
-                <div
-                  className={`h-full rounded-full ${categoryColors[key] || "bg-slate-400"}`}
-                  style={{ width: `${(value / total) * 100}%` }}
-                />
-              </div>
+      {/* Breakdown */}
+      <div className="p-6 space-y-5 bg-slate-900/50">
+        <h4 className="text-sm font-medium text-slate-300">Détail par catégorie</h4>
+        <div className="space-y-4">
+            {Object.entries(breakdown).map(([key, value]) => {
+                const percentage = total > 0 ? (value / total) * 100 : 0;
+                const colorClass = categoryColors[key] || "bg-slate-400 text-slate-400";
+                
+                return (
+                <div key={key}>
+                    <div className="flex justify-between text-sm mb-1.5">
+                        <span className="capitalize text-slate-300 font-medium flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full ${colorClass.split(' ')[0]}`}></span>
+                            {key}
+                        </span>
+                        <span className="text-slate-400">{value.toFixed(1)} <span className="text-xs">kg</span></span>
+                    </div>
+                    <div className="h-2.5 w-full rounded-full bg-slate-800 overflow-hidden">
+                        <div
+                            className={`h-full rounded-full transition-all duration-1000 ease-out ${colorClass.split(' ')[0]}`}
+                            style={{ width: `${percentage}%` }}
+                        />
+                    </div>
+                </div>
+                );
+            })}
+        </div>
+      </div>
+
+      {/* Conseils */}
+      {total >= 150 && (
+          <div className="bg-slate-800/30 p-5 border-t border-slate-800">
+            <div className="flex gap-3">
+                <div className="flex-shrink-0 text-amber-400">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h4 className="text-sm font-medium text-slate-200 mb-1">Pistes d'amélioration</h4>
+                    <ul className="text-sm text-slate-400 space-y-1 list-disc pl-4 marker:text-slate-600">
+                        <li>Réduire la consommation de viande rouge peut avoir un impact majeur.</li>
+                        <li>Privilégier les produits de saison et locaux.</li>
+                    </ul>
+                </div>
             </div>
           </div>
-        ))}
-      </div>
-
-      {/* Message d'interprétation */}
-      <div className="mt-4 rounded-md bg-slate-800/50 p-3 text-sm text-slate-300">
-        <p>
-          Votre empreinte annuelle estimée serait d'environ{' '}
-          <strong className="font-medium text-brand-100">{(total * 12).toFixed(0)} kg CO₂</strong>
-          {total < 50 && ' – Très faible !'}
-          {total >= 50 && total < 150 && ' – Dans la moyenne.'}
-          {total >= 150 && ' – Élevée. Voici des pistes pour la réduire :'}
-        </p>
-        {total >= 150 && (
-          <ul className="mt-2 list-disc pl-4 text-xs text-slate-400">
-            <li>Privilégiez les transports en commun ou le covoiturage.</li>
-            <li>Réduisez votre consommation de viande.</li>
-            <li>Isolez mieux votre logement.</li>
-          </ul>
-        )}
-      </div>
+      )}
     </div>
   );
 };
-

@@ -52,3 +52,21 @@ export const getAllProduits = async (): Promise<IProduit[]> => {
     const res = await pool.query('SELECT * FROM produit');
     return res.rows;
 };
+
+export const searchProduits = async (term: string, categorie?: string): Promise<IProduit[]> => {
+    let query = `
+        SELECT * FROM produit 
+        WHERE (nom ILIKE $1 OR description ILIKE $1)
+    `;
+    const values: any[] = [`%${term}%`];
+
+    if (categorie) {
+        query += ` AND categorie = $2`;
+        values.push(categorie);
+    }
+
+    query += ` LIMIT 20`;
+
+    const res = await pool.query(query, values);
+    return res.rows;
+};
