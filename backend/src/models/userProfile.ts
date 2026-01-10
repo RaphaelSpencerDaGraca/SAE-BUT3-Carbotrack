@@ -1,4 +1,4 @@
-//backend\src\models\userProfile.ts
+// backend/src/models/userProfile.ts
 import pool from '../config/db';
 
 export interface UserProfile {
@@ -7,12 +7,6 @@ export interface UserProfile {
   emission_co2_lifestyle: number | null;
   pseudo?: string;
   genre?: 'Homme' | 'Femme' | 'Autre';
-}
-
-export interface UserProfile {
-  user_id: string;
-  emission_co2_transport: number | null;
-  emission_co2_lifestyle: number | null;
 }
 
 export const createUserProfile = async (profile: UserProfile): Promise<UserProfile> => {
@@ -28,7 +22,7 @@ export const createUserProfile = async (profile: UserProfile): Promise<UserProfi
 
 export const getUserProfileByUserId = async (userId: string): Promise<UserProfile | null> => {
   const res = await pool.query(
-    'SELECT user_id, emission_co2_transport, emission_co2_lifestyle FROM user_profiles WHERE user_id = $1',
+    'SELECT user_id, emission_co2_transport, emission_co2_lifestyle, pseudo, genre FROM user_profiles WHERE user_id = $1',
     [userId]
   );
   return res.rows[0] || null;
@@ -37,16 +31,17 @@ export const getUserProfileByUserId = async (userId: string): Promise<UserProfil
 export const updateUserProfile = async (userId: string, payload: Partial<UserProfile>): Promise<UserProfile | null> => {
   const res = await pool.query(
     `UPDATE user_profiles
-     SET emission_co2_transport = COALESCE($2, emission_co2_transport),
-         emission_co2_lifestyle = COALESCE($3, emission_co2_lifestyle),
+     SET 
+         emission_co2_transport = COALESCE(emission_co2_transport, 0.0) + COALESCE($2, 0.0),
+         emission_co2_lifestyle = COALESCE(emission_co2_lifestyle, 0.0) + COALESCE($3, 0.0),
          pseudo = COALESCE($4, pseudo),
          genre = COALESCE($5, genre)
      WHERE user_id = $1
      RETURNING user_id, emission_co2_transport, emission_co2_lifestyle, pseudo, genre`,
     [
         userId,
-        payload.emission_co2_transport ?? null,
-        payload.emission_co2_lifestyle ?? null,
+        payload.emission_co2_transport !== undefined ? Number(payload.emission_co2_transport) : null,
+        payload.emission_co2_lifestyle !== undefined ? Number(payload.emission_co2_lifestyle) : null,
         payload.pseudo ?? null,
         payload.genre ?? null
     ]

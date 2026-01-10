@@ -57,7 +57,7 @@ export const LifestyleForm: React.FC<LifestyleFormProps> = ({ produits }) => {
       <div className="grid gap-4 md:grid-cols-2">
         <SectionCard title="Alimentation" categorie="alimentation" produits={produits} selectedItems={formData.alimentation} onItemsChange={(items) => setFormData(prev => ({ ...prev, alimentation: items }))} />
       </div>
-      <button onClick={calculateEmissions} className="w-full rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-brand-600">
+      <button onClick={calculateEmissions} className="w-full rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-brand-600">
         Calculer mon empreinte simulée
       </button>
 

@@ -25,7 +25,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ total, breakdown }
       {/* Header Resultat */}
       <div className="relative p-6 sm:p-8 text-center border-b border-slate-800 bg-gradient-to-b from-slate-800/50 to-transparent">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-2">
-            Empreinte Mensuelle Estimée
+            Empreinte Carbonne Estimée
         </h3>
         <div className="flex items-baseline justify-center gap-2">
             <span className={`text-5xl sm:text-6xl font-black tracking-tight ${getIntensityColor(total).split(' ')[0]}`}>
@@ -40,34 +40,6 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ total, breakdown }
         </div>
       </div>
 
-      {/* Breakdown */}
-      <div className="p-6 space-y-5 bg-slate-900/50">
-        <h4 className="text-sm font-medium text-slate-300">Détail par catégorie</h4>
-        <div className="space-y-4">
-            {Object.entries(breakdown).map(([key, value]) => {
-                const percentage = total > 0 ? (value / total) * 100 : 0;
-                const colorClass = categoryColors[key] || "bg-slate-400 text-slate-400";
-                
-                return (
-                <div key={key}>
-                    <div className="flex justify-between text-sm mb-1.5">
-                        <span className="capitalize text-slate-300 font-medium flex items-center gap-2">
-                            <span className={`w-2 h-2 rounded-full ${colorClass.split(' ')[0]}`}></span>
-                            {key}
-                        </span>
-                        <span className="text-slate-400">{value.toFixed(1)} <span className="text-xs">kg</span></span>
-                    </div>
-                    <div className="h-2.5 w-full rounded-full bg-slate-800 overflow-hidden">
-                        <div
-                            className={`h-full rounded-full transition-all duration-1000 ease-out ${colorClass.split(' ')[0]}`}
-                            style={{ width: `${percentage}%` }}
-                        />
-                    </div>
-                </div>
-                );
-            })}
-        </div>
-      </div>
 
       {/* Conseils */}
       {total >= 150 && (

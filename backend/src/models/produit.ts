@@ -17,7 +17,7 @@ export interface IProduit {
   date_maj: string;
 }
 
-// Méthodes pour interagir avec la base de données
+
 export const getProduitById = async (id: number): Promise<IProduit | null> => {
     const res = await pool.query('SELECT * FROM produit WHERE id = $1', [id]);
     return res.rows[0] || null;
