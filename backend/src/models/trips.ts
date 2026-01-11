@@ -77,3 +77,47 @@ export async function deleteTripByUser(userId: number, tripId: number) {
     );
     return result.rows[0] ?? null;
 }
+
+type UpdateTripInput = {
+    date?: string;
+    fromCity?: string;
+    toCity?: string;
+    distanceKm?: number;
+    vehicleId?: number;
+    tag?: string | null;
+    co2Kg?: number;
+};
+
+export async function updateTripByUser(userId: number, tripId: number, input: UpdateTripInput) {
+    const sets: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
+
+    function add(col: string, val: any) {
+        if (val === undefined) return;
+        sets.push(`${col} = $${idx++}`);
+        values.push(val);
+    }
+
+    add("date", input.date);
+    add("from_city", input.fromCity);
+    add("to_city", input.toCity);
+    add("distance_km", input.distanceKm);
+    add("vehicle_id", input.vehicleId);
+    add("tag", input.tag);
+    add("co2_kg", input.co2Kg);
+
+    if (sets.length === 0) return null;
+
+    values.push(tripId, userId);
+
+    const res = await pool.query(
+        `UPDATE trips
+         SET ${sets.join(", ")}
+         WHERE id = $${idx++} AND user_id = $${idx}
+             RETURNING *`,
+        values
+    );
+
+    return res.rows[0] ?? null;
+}

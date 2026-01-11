@@ -6,6 +6,8 @@ import { useTranslation } from "@/language/useTranslation.ts";
 import TripFormModal from "@/components/trips/TripFormModal";
 import { getVehicles } from "@/services/vehicleService";
 import { deleteTrip } from "@/services/tripService";
+import { updateTrip } from "@/services/tripService";
+
 
 type CreateTripPayload = {
     date: string;
@@ -23,6 +25,7 @@ const TripsPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [openModal, setOpenModal] = useState(false);
+    const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
 
     const API_BASE = import.meta.env.VITE_API_URL ?? '/api';
 
@@ -93,6 +96,26 @@ const TripsPage = () => {
         const created: Trip = await res.json();
         setTrips((prev) => [created, ...prev]);
         setOpenModal(false);
+    };
+
+    const handleSubmitTrip = async (payload: CreateTripPayload) => {
+        try {
+            if (editingTrip) {
+                // MODE EDIT
+                await updateTrip(editingTrip.id, payload);
+
+                // ✅ C'EST ICI que tu mets ça :
+                await fetchTrips();
+                setEditingTrip(null);
+                setOpenModal(false);
+            } else {
+                // MODE CREATE
+                await handleCreateTrip(payload);
+            }
+        } catch (e) {
+            console.error("Erreur submit trip:", e);
+            throw e;
+        }
     };
 
     async function handleDeleteTrip(id: Trip["id"]) {
@@ -213,7 +236,14 @@ const TripsPage = () => {
                                         </div>
 
                                         <div className="flex items-center gap-2">
-                                            <button className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-[11px] text-slate-200 hover:border-slate-500">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setEditingTrip(trip);
+                                                    setOpenModal(true);
+                                                }}
+                                                className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-[11px] text-slate-200 hover:border-slate-500"
+                                            >
                                                 {t("trips.actions.edit")}
                                             </button>
                                             <button
@@ -234,9 +264,13 @@ const TripsPage = () => {
 
             <TripFormModal
                 open={openModal}
-                onClose={() => setOpenModal(false)}
+                onClose={() => {
+                    setOpenModal(false);
+                    setEditingTrip(null);
+                }}
                 vehicles={vehicles}
-                onSubmit={handleCreateTrip}
+                onSubmit={handleSubmitTrip}
+                initialTrip={editingTrip}
             />
         </main>
     );
