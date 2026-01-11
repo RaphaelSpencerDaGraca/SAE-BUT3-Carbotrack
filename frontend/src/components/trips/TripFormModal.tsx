@@ -1,6 +1,7 @@
 // frontend/src/components/trips/TripFormModal.tsx
 import { useEffect, useMemo, useState } from "react";
 import type { Vehicle } from "../../../../shared/vehicle.type";
+import type { Trip } from "../../../../shared/trip.type";
 
 type CreateTripPayload = {
     date: string;
@@ -18,6 +19,7 @@ type Props = {
     onSubmit: (payload: CreateTripPayload) => Promise<void>;
     saving?: boolean;
     submitError?: string | null;
+    initialTrip?: Trip | null;
 };
 
 export default function TripFormModal({
@@ -27,6 +29,7 @@ export default function TripFormModal({
                                           onSubmit,
                                           saving = false,
                                           submitError = null,
+                                          initialTrip = null,
                                       }: Props) {
     const [form, setForm] = useState({
         date: "",
@@ -56,12 +59,36 @@ export default function TripFormModal({
         setLocalError(null);
     }, [open]);
 
-    if (!open) return null;
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
     }
+
+
+    useEffect(() => {
+        if (!open) return;
+
+        if (initialTrip) {
+            setForm({
+                date: String((initialTrip as any).date ?? ""),
+                fromCity: String((initialTrip as any).fromCity ?? ""),
+                toCity: String((initialTrip as any).toCity ?? ""),
+                distanceKm: String((initialTrip as any).distanceKm ?? ""),
+                vehicleId: String((initialTrip as any).vehicleId ?? ""),
+                tag: String((initialTrip as any).tag ?? ""),
+            });
+        } else {
+            setForm({
+                date: "",
+                fromCity: "",
+                toCity: "",
+                distanceKm: "",
+                vehicleId: "",
+                tag: "",
+            });
+        }
+    }, [open, initialTrip]);
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -88,17 +115,21 @@ export default function TripFormModal({
         });
 
         // Reset après succès
-        setForm({
-            date: "",
-            fromCity: "",
-            toCity: "",
-            distanceKm: "",
-            vehicleId: "",
-            tag: "",
-        });
+        if (!initialTrip) {
+            setForm({
+                date: "",
+                fromCity: "",
+                toCity: "",
+                distanceKm: "",
+                vehicleId: "",
+                tag: "",
+            });
+        }
     }
 
     const effectiveError = localError || submitError;
+
+    if (!open) return null;
 
     return (
         <div className="fixed inset-0 z-50">
@@ -115,7 +146,9 @@ export default function TripFormModal({
                 <div className="flex items-start justify-between gap-3">
                     <div>
                         <p className="text-xs uppercase tracking-wide text-slate-500">Trajets</p>
-                        <h2 className="mt-1 text-lg font-semibold">Nouveau trajet</h2>
+                        <h2 className="mt-1 text-lg font-semibold">
+                            {initialTrip ? "Modifier le trajet" : "Nouveau trajet"}
+                        </h2>
                         <p className="mt-1 text-sm text-slate-400">Ajoute un trajet lié à un véhicule.</p>
                     </div>
 
@@ -234,7 +267,7 @@ export default function TripFormModal({
                             disabled={saving || vehiclesSorted.length === 0}
                             className="rounded-full bg-emerald-500 px-4 py-1.5 text-xs font-medium text-emerald-950 hover:bg-emerald-400 disabled:opacity-60"
                         >
-                            {saving ? "Enregistrement…" : "Créer"}
+                            {saving ? "Enregistrement…" : initialTrip ? "Mettre à jour" : "Créer"}
                         </button>
                     </div>
                 </form>
