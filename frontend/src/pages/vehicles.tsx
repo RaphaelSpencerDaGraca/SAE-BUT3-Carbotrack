@@ -3,7 +3,7 @@
 import type { Vehicle } from "../../../shared/vehicle.type.ts";
 import type { ChangeEvent, FormEvent } from "react";
 import { useEffect, useState } from "react";
-import { getVehicles, createVehicle, estimateConsumption } from "@/services/vehicleService";
+import { getVehicles, createVehicle, estimateConsumption, deleteVehicle } from "@/services/vehicleService";
 import { useTranslation } from "@/language/useTranslation";
 
 
@@ -16,6 +16,8 @@ type SummaryCardProps = {
 type VehicleRowProps = {
     vehicle: Vehicle;
     fuelLabel: (fuel: Vehicle["fuelType"]) => string;
+    onDelete: (id: Vehicle["id"]) => void;
+    t: (key: string) => string;
 };
 
 const SummaryCard = ({ label, value, helper }: SummaryCardProps) => {
@@ -28,8 +30,7 @@ const SummaryCard = ({ label, value, helper }: SummaryCardProps) => {
     );
 };
 
-const VehicleRow = ({ vehicle, fuelLabel }: VehicleRowProps) => {
-    const { t } = useTranslation();
+const VehicleRow = ({  vehicle, fuelLabel, onDelete, t  }: VehicleRowProps) => {
 
     return (
         <div className="flex flex-col gap-2 py-3 md:flex-row md:items-center md:justify-between">
@@ -64,7 +65,11 @@ const VehicleRow = ({ vehicle, fuelLabel }: VehicleRowProps) => {
                 <button className="rounded-full border border-slate-700 px-3 py-1 text-slate-200 hover:bg-slate-800">
                     {t("vehicles.actions.edit")}
                 </button>
-                <button className="rounded-full border border-red-700/70 bg-red-950/40 px-3 py-1 text-red-200 hover:bg-red-900/60">
+                <button
+                    type="button"
+                    onClick={() => onDelete(vehicle.id)}
+                    className="rounded-full border border-red-700/70 bg-red-950/40 px-3 py-1 text-red-200 hover:bg-red-900/60"
+                >
                     {t("vehicles.actions.delete")}
                 </button>
             </div>
@@ -199,6 +204,19 @@ const VehiclesPage = () => {
             setFormError("vehicles.error.createFail");
         } finally {
             setSaving(false);
+        }
+    }
+
+    async function handleDeleteVehicle(id: Vehicle["id"]) {
+        const ok = window.confirm("Supprimer ce véhicule ?");
+        if (!ok) return;
+
+        try {
+            await deleteVehicle(id);
+            setVehicles((prev) => prev.filter((v) => v.id !== id));
+        } catch (e: any) {
+            console.error("Erreur suppression véhicule:", e);
+            alert("Suppression impossible (trajets liés ?) ou erreur serveur.");
         }
     }
 
@@ -456,6 +474,8 @@ const VehiclesPage = () => {
                                     key={vehicle.id}
                                     vehicle={vehicle}
                                     fuelLabel={(fuel) => fuelLabel(fuel, t)}
+                                    onDelete={handleDeleteVehicle}
+                                    t={t}
                                 />
                             ))}
                     </div>

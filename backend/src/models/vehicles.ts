@@ -94,3 +94,13 @@ export async function insertVehicle(args: {
 
     return result.rows[0];
 }
+
+export async function deleteVehicleByUser(userId: number, vehicleId: number) {
+    const result = await pool.query(
+        `DELETE FROM vehicles
+     WHERE id = $1 AND user_id = $2
+     RETURNING id`,
+        [vehicleId, userId]
+    );
+    return result.rows[0] ?? null;
+}

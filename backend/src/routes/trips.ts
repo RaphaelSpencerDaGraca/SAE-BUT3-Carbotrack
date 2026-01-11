@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { authenticate } from '../middlewares/auth';
 import { calculateTripEmissionsKgCO2 } from '../services/co2Calculator';
 import { getOwnedVehicleForTrip } from '../models/vehicles';
-import { insertTrip, listTripsByUser } from '../models/trips';
+import { insertTrip, listTripsByUser, deleteTripByUser } from '../models/trips';
 
 const router = Router();
 
@@ -77,5 +77,26 @@ router.post('/', authenticate, async (req: any, res) => {
         return res.status(500).json({ error: 'Erreur serveur' });
     }
 });
+
+router.delete("/:id", authenticate, async (req: any, res) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) return res.status(401).json({ error: "Utilisateur non authentifié." });
+
+        const tripId = Number(req.params.id);
+        if (Number.isNaN(tripId)) {
+            return res.status(400).json({ error: "id invalide" });
+        }
+
+        const deleted = await deleteTripByUser(userId, tripId);
+        if (!deleted) return res.status(404).json({ error: "Trajet introuvable." });
+
+        return res.status(204).send();
+    } catch (e) {
+        console.error("Erreur DELETE /api/trips/:id:", e);
+        return res.status(500).json({ error: "Erreur serveur" });
+    }
+});
+
 
 export default router;

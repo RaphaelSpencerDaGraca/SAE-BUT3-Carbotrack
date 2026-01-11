@@ -34,3 +34,7 @@ export async function estimateConsumption(query: string, fuelType: Vehicle["fuel
         type?: string;
     };
 }
+
+export async function deleteVehicle(id: number | string): Promise<void> {
+    await api.delete(`/vehicles/${id}`);
+}

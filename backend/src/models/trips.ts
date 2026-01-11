@@ -67,3 +67,13 @@ export async function insertTrip(args: {
 
     return result.rows[0];
 }
+
+export async function deleteTripByUser(userId: number, tripId: number) {
+    const result = await pool.query(
+        `DELETE FROM trips
+     WHERE id = $1 AND user_id = $2
+     RETURNING id`,
+        [tripId, userId]
+    );
+    return result.rows[0] ?? null;
+}
