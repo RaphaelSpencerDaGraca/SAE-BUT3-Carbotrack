@@ -93,7 +93,7 @@ const VehiclesPage = () => {
         consumptionLPer100: ""
     });
 
-    const [lastUnit, setLastUnit] =
+    const [, setLastUnit] =
         useState<"L/100km" | "kWh/100km" | null>(null);
 
 
