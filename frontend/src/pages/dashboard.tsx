@@ -1,5 +1,6 @@
-//frontend\src\pages\dashboard.tsx
-import { useEffect, useState } from "react";
+// frontend/src/pages/dashboard.tsx
+
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useTranslation } from "@/language/useTranslation";
 import { getVehicles } from "@/services/vehicleService";
@@ -24,6 +25,17 @@ const StatCard = ({ label, value, helper, helperClassName }: StatCardProps) => {
         </div>
     );
 };
+
+function interpolate(template: string, values: Record<string, string>): string {
+    return template.replace(/\{(\w+)}/g, (match, key) => {
+        return Object.prototype.hasOwnProperty.call(values, key) ? values[key] : match;
+    });
+}
+
+function formatPercent(value: number): string {
+    const rounded1 = Math.round(value * 10) / 10;
+    return new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(rounded1);
+}
 
 const Dashboard = () => {
     const { user, logout } = useAuth();
@@ -86,23 +98,39 @@ const Dashboard = () => {
 
     const firstName = typeof rawName === "string" ? rawName.split(" ")[0] : t("common.user");
 
-    const latestTrips = [...trips]
-        .sort((a: any, b: any) => {
-            const da = new Date(a.date ?? 0).getTime();
-            const db = new Date(b.date ?? 0).getTime();
-            return db - da;
-        })
-        .slice(0, 3);
+    const latestTrips = useMemo(() => {
+        return [...trips]
+            .sort((a: any, b: any) => {
+                const da = new Date(a.date ?? 0).getTime();
+                const db = new Date(b.date ?? 0).getTime();
+                return db - da;
+            })
+            .slice(0, 3);
+    }, [trips]);
 
-    const totalCo2Kg = trips.reduce((sum, trip) => {
-        const v = Number((trip as any).co2Kg ?? 0);
-        return sum + (Number.isFinite(v) ? v : 0);
-    }, 0);
+    const totalCo2Kg = useMemo(() => {
+        return trips.reduce((sum, trip) => {
+            const v = Number((trip as any).co2Kg ?? 0);
+            return sum + (Number.isFinite(v) ? v : 0);
+        }, 0);
+    }, [trips]);
 
-    const { helperText: co2HelperText, helperClassName: co2HelperClassName } = getCo2Benchmark({
-        totalCo2Kg,
-        isLoading: tripsLoading,
-    });
+    const co2Stat = useMemo(() => {
+        return getCo2Benchmark({ totalCo2Kg, isLoading: tripsLoading });
+    }, [totalCo2Kg, tripsLoading]);
+
+    const co2Helper = useMemo(() => {
+        const template = t(co2Stat.helperKey);
+
+        const values = co2Stat.helperValues;
+        if (!values) return template;
+
+        return interpolate(template, {
+            better: formatPercent(values.better),
+            worse: formatPercent(values.worse),
+            top: formatPercent(values.top),
+        });
+    }, [co2Stat.helperKey, co2Stat.helperValues, t]);
 
     return (
         <main className="min-h-screen bg-slate-950 text-slate-50 px-4 pb-24 pt-6">
@@ -143,32 +171,26 @@ const Dashboard = () => {
                     <StatCard
                         label={t("dashboard.stats.co2.label")}
                         value={tripsLoading ? "..." : `${totalCo2Kg.toFixed(2)} kg`}
-                        helper={co2HelperText}
-                        helperClassName={co2HelperClassName}
+                        helper={co2Helper}
+                        helperClassName={co2Stat.helperClassName}
                     />
                 </section>
 
                 <section className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1.1fr)]">
                     <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
                         <div className="flex items-center justify-between gap-2">
-                            <h2 className="text-sm font-medium text-slate-100">
-                                {t("dashboard.latestTrips.title")}
-                            </h2>
+                            <h2 className="text-sm font-medium text-slate-100">{t("dashboard.latestTrips.title")}</h2>
                             <button className="text-xs text-emerald-300 hover:underline">
                                 {t("dashboard.latestTrips.cta")}
                             </button>
                         </div>
 
-                        <p className="mt-3 text-sm text-slate-400">
-                            Voici les trajets les plus récents enregistrés pour votre compte.
-                        </p>
+                        <p className="mt-3 text-sm text-slate-400">{t("dashboard.latestTrips.description")}</p>
 
                         <ul className="mt-4 space-y-2 text-xs text-slate-400">
-                            {tripsLoading && <li>{t("dashboard.latestTrips.loading") ?? "Chargement des trajets..."}</li>}
+                            {tripsLoading && <li>{t("dashboard.latestTrips.loading")}</li>}
 
-                            {!tripsLoading && latestTrips.length === 0 && (
-                                <li>{t("dashboard.latestTrips.empty") ?? "Aucun trajet pour le moment."}</li>
-                            )}
+                            {!tripsLoading && latestTrips.length === 0 && <li>{t("dashboard.latestTrips.empty")}</li>}
 
                             {!tripsLoading &&
                                 latestTrips.map((trip: any) => (

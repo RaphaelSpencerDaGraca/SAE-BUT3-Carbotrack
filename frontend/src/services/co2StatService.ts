@@ -1,8 +1,13 @@
 // frontend/src/services/co2StatService.ts
 
-export type Co2BenchmarkResult = {
-    helperText: string;
+export type Co2StatResult = {
+    helperKey: string;
     helperClassName: string;
+    /**
+     * Valeurs à injecter dans la traduction (ex: {better}, {worse}, {top}).
+     * Remarque: formatage laissé au caller (UI) pour respecter la locale.
+     */
+    helperValues?: Record<string, number>;
     /**
      * Estimation interne (0-100) de "mieux que X%".
      * TODO: brancher un vrai calcul basé sur des données réelles (percentiles).
@@ -16,17 +21,6 @@ export const POPULATION_REFERENCE_KG = 2000;
 
 function clamp(value: number, min: number, max: number): number {
     return Math.min(max, Math.max(min, value));
-}
-
-function formatPercentFR(value: number): string {
-    const v = clamp(value, 0, 100);
-    const rounded1 = Math.round(v * 10) / 10;
-    const isInt = Math.abs(rounded1 - Math.round(rounded1)) < 1e-9;
-
-    return new Intl.NumberFormat("fr-FR", {
-        maximumFractionDigits: isInt ? 0 : 1,
-        minimumFractionDigits: isInt ? 0 : 1,
-    }).format(rounded1);
 }
 
 /**
@@ -45,13 +39,12 @@ export function getCo2Benchmark(params: {
     totalCo2Kg: number;
     isLoading: boolean;
     referenceKg?: number;
-}): Co2BenchmarkResult {
+}): Co2StatResult {
     const { totalCo2Kg, isLoading, referenceKg = POPULATION_REFERENCE_KG } = params;
 
     if (isLoading) {
         return {
-            // TODO: déplacer ce texte dans translations.ts + utiliser t("...") au lieu d’un texte en dur
-            helperText: "Calcul en cours…",
+            helperKey: "dashboard.stats.co2.helper.loading",
             helperClassName: "text-slate-400",
         };
     }
@@ -59,16 +52,18 @@ export function getCo2Benchmark(params: {
     const betterThanPercent = estimateBetterThanPercent(totalCo2Kg, referenceKg);
     const worseThanPercent = clamp(100 - betterThanPercent, 0.1, 99.9);
 
-    const betterStr = formatPercentFR(betterThanPercent);
-    const worseStr = formatPercentFR(worseThanPercent);
-    const topStr = formatPercentFR(worseThanPercent); // top X% = 100 - betterThanPercent
+    const values = {
+        better: betterThanPercent,
+        worse: worseThanPercent,
+        top: worseThanPercent, // top X% = 100 - betterThanPercent
+    };
 
     // Catégories : 0–25 / 26–50 / 50–75 / 75–90 / 90–99 / 99–100
-    // TODO: déplacer ces textes dans translations.ts
     if (betterThanPercent <= 25) {
         return {
             betterThanPercent,
-            helperText: `Aïe… c'est plus élevé que ${worseStr}% des Français.`,
+            helperValues: values,
+            helperKey: "dashboard.stats.co2.helper.p0_25",
             helperClassName: "text-red-300",
         };
     }
@@ -76,7 +71,8 @@ export function getCo2Benchmark(params: {
     if (betterThanPercent <= 50) {
         return {
             betterThanPercent,
-            helperText: `Proche de la moyenne… mais ça reste au dessus avec ${worseStr}%.`,
+            helperValues: values,
+            helperKey: "dashboard.stats.co2.helper.p26_50",
             helperClassName: "text-orange-300",
         };
     }
@@ -84,7 +80,8 @@ export function getCo2Benchmark(params: {
     if (betterThanPercent <= 75) {
         return {
             betterThanPercent,
-            helperText: `C'est bien : mieux que ${betterStr}% des Français`,
+            helperValues: values,
+            helperKey: "dashboard.stats.co2.helper.p51_75",
             helperClassName: "text-yellow-300",
         };
     }
@@ -92,7 +89,8 @@ export function getCo2Benchmark(params: {
     if (betterThanPercent <= 90) {
         return {
             betterThanPercent,
-            helperText: `Bravo ! ${betterStr}% ! vous faites mieux que 3/4 des Français.`,
+            helperValues: values,
+            helperKey: "dashboard.stats.co2.helper.p76_90",
             helperClassName: "text-emerald-300",
         };
     }
@@ -100,14 +98,16 @@ export function getCo2Benchmark(params: {
     if (betterThanPercent <= 99) {
         return {
             betterThanPercent,
-            helperText: `Wow ! avec ${betterStr}% vous êtes dans le top ${topStr}%`,
+            helperValues: values,
+            helperKey: "dashboard.stats.co2.helper.p91_99",
             helperClassName: "text-emerald-300",
         };
     }
 
     return {
         betterThanPercent,
-        helperText: `Exceptionnel : mieux que ${betterStr}% de la population`,
+        helperValues: values,
+        helperKey: "dashboard.stats.co2.helper.p99_100",
         helperClassName: "text-emerald-300",
     };
 }
