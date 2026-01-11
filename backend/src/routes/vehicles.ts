@@ -1,7 +1,7 @@
 // backend/src/routes/vehicles.ts
 import { Router } from 'express';
 import { authenticate } from '../middlewares/auth';
-import { insertVehicle, listVehiclesByUser } from '../models/vehicles';
+import { insertVehicle, listVehiclesByUser, deleteVehicleByUser } from '../models/vehicles';
 import { estimateConsumptionMax } from "../services/vehicleConsumptionService";
 
 const router = Router();
@@ -73,5 +73,33 @@ router.get("/estimate-consumption", authenticate, (req: any, res) => {
         return res.status(500).json({ error: "Erreur serveur" });
     }
 });
+
+router.delete("/:id", authenticate, async (req: any, res) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) return res.status(401).json({ error: "Utilisateur non authentifié." });
+
+        const vehicleId = Number(req.params.id);
+        if (Number.isNaN(vehicleId)) {
+            return res.status(400).json({ error: "id invalide" });
+        }
+
+        const deleted = await deleteVehicleByUser(userId, vehicleId);
+        if (!deleted) return res.status(404).json({ error: "Véhicule introuvable." });
+
+        return res.status(204).send();
+    } catch (e: any) {
+        // Si FK trips.vehicle_id bloque la suppression => 23503
+        if (e?.code === "23503") {
+            return res.status(409).json({
+                error: "Impossible de supprimer : des trajets existent pour ce véhicule.",
+            });
+        }
+
+        console.error("Erreur DELETE /api/vehicles/:id:", e);
+        return res.status(500).json({ error: "Erreur serveur" });
+    }
+});
+
 
 export default router;

@@ -5,6 +5,7 @@ import type { Vehicle } from '../../../shared/vehicle.type.ts';
 import { useTranslation } from "@/language/useTranslation.ts";
 import TripFormModal from "@/components/trips/TripFormModal";
 import { getVehicles } from "@/services/vehicleService";
+import { deleteTrip } from "@/services/tripService";
 
 type CreateTripPayload = {
     date: string;
@@ -94,6 +95,20 @@ const TripsPage = () => {
         setTrips((prev) => [created, ...prev]);
         setOpenModal(false);
     };
+
+    async function handleDeleteTrip(id: Trip["id"]) {
+        const ok = window.confirm("Supprimer ce trajet ?");
+        if (!ok) return;
+
+        try {
+            await deleteTrip(id);
+            setTrips((prev) => prev.filter((t) => t.id !== id));
+        } catch (err) {
+            console.error("Erreur suppression trajet:", err);
+            alert("Erreur lors de la suppression du trajet.");
+        }
+    }
+
 
     return (
         <main className="min-h-screen bg-slate-950 text-slate-50 px-4 pb-24 pt-6">
@@ -204,7 +219,11 @@ const TripsPage = () => {
                                             <button className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-[11px] text-slate-200 hover:border-slate-500">
                                                 {t("trips.actions.edit")}
                                             </button>
-                                            <button className="rounded-full border border-red-500/60 bg-red-500/10 px-3 py-1 text-[11px] text-red-200 hover:bg-red-500/20">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteTrip(trip.id)}
+                                                className="rounded-full border border-red-500/60 bg-red-500/10 px-3 py-1 text-[11px] text-red-200 hover:bg-red-500/20"
+                                            >
                                                 {t("trips.actions.delete")}
                                             </button>
                                         </div>
