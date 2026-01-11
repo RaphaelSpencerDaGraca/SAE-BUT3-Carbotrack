@@ -10,7 +10,7 @@ export async function registerUserWithOptionalSeed(email: string, passwordHash: 
 
         const user = await createUserTx(client, email, passwordHash, pseudo);
 
-        const shouldSeed = process.env.SEED_ON_SIGNUP === "true" && process.env.NODE_ENV !== "production";
+        const shouldSeed = process.env.SEED_ON_SIGNUP === "true";
         if (shouldSeed) {
             await seedUserTransportData(client, user.id);
         }
