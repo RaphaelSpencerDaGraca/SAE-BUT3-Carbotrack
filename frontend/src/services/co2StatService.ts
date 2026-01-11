@@ -18,6 +18,17 @@ function clamp(value: number, min: number, max: number): number {
     return Math.min(max, Math.max(min, value));
 }
 
+function formatPercentFR(value: number): string {
+    const v = clamp(value, 0, 100);
+    const rounded1 = Math.round(v * 10) / 10;
+    const isInt = Math.abs(rounded1 - Math.round(rounded1)) < 1e-9;
+
+    return new Intl.NumberFormat("fr-FR", {
+        maximumFractionDigits: isInt ? 0 : 1,
+        minimumFractionDigits: isInt ? 0 : 1,
+    }).format(rounded1);
+}
+
 /**
  * Estime un percentile "mieux que X%" à partir du CO2 et d'une référence.
  * Heuristique simple : à referenceKg => ~50%, plus bas => monte, plus haut => descend.
@@ -46,15 +57,18 @@ export function getCo2Benchmark(params: {
     }
 
     const betterThanPercent = estimateBetterThanPercent(totalCo2Kg, referenceKg);
+    const worseThanPercent = clamp(100 - betterThanPercent, 0.1, 99.9);
+
+    const betterStr = formatPercentFR(betterThanPercent);
+    const worseStr = formatPercentFR(worseThanPercent);
+    const topStr = formatPercentFR(worseThanPercent); // top X% = 100 - betterThanPercent
 
     // Catégories : 0–25 / 26–50 / 50–75 / 75–90 / 90–99 / 99–100
-    // Note: les textes ci-dessous sont volontairement “fixes” par palier.
-    // TODO: optionnellement injecter le % réel (betterThanPercent) dans le texte.
+    // TODO: déplacer ces textes dans translations.ts
     if (betterThanPercent <= 25) {
         return {
             betterThanPercent,
-            // TODO: déplacer ce texte dans translations.ts
-            helperText: "Aïe… c'est plus élevé que 90% des Français.",
+            helperText: `Aïe… c'est plus élevé que ${worseStr}% des Français.`,
             helperClassName: "text-red-300",
         };
     }
@@ -62,8 +76,7 @@ export function getCo2Benchmark(params: {
     if (betterThanPercent <= 50) {
         return {
             betterThanPercent,
-            // TODO: déplacer ce texte dans translations.ts
-            helperText: "Proche de la moyenne… mais ça reste au dessus avec 70%.",
+            helperText: `Proche de la moyenne… mais ça reste au dessus avec ${worseStr}%.`,
             helperClassName: "text-orange-300",
         };
     }
@@ -71,8 +84,7 @@ export function getCo2Benchmark(params: {
     if (betterThanPercent <= 75) {
         return {
             betterThanPercent,
-            // TODO: déplacer ce texte dans translations.ts
-            helperText: "C'est bien : mieux que 60% des Français",
+            helperText: `C'est bien : mieux que ${betterStr}% des Français`,
             helperClassName: "text-yellow-300",
         };
     }
@@ -80,8 +92,7 @@ export function getCo2Benchmark(params: {
     if (betterThanPercent <= 90) {
         return {
             betterThanPercent,
-            // TODO: déplacer ce texte dans translations.ts
-            helperText: "Bravo ! 82% ! vous faites mieux que 3/4 des Français.",
+            helperText: `Bravo ! ${betterStr}% ! vous faites mieux que 3/4 des Français.`,
             helperClassName: "text-emerald-300",
         };
     }
@@ -89,16 +100,14 @@ export function getCo2Benchmark(params: {
     if (betterThanPercent <= 99) {
         return {
             betterThanPercent,
-            // TODO: déplacer ce texte dans translations.ts
-            helperText: "Wow ! avec 95% vous êtes dans le top 10%",
+            helperText: `Wow ! avec ${betterStr}% vous êtes dans le top ${topStr}%`,
             helperClassName: "text-emerald-300",
         };
     }
 
     return {
         betterThanPercent,
-        // TODO: déplacer ce texte dans translations.ts
-        helperText: "Exceptionnel : mieux que 99,6% de la population",
+        helperText: `Exceptionnel : mieux que ${betterStr}% de la population`,
         helperClassName: "text-emerald-300",
     };
 }
