@@ -3,22 +3,24 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useTranslation } from "@/language/useTranslation";
 import { getVehicles } from "@/services/vehicleService";
+import { getTrips } from "@/services/tripService";
+import { getCo2Benchmark } from "@/services/co2StatService";
 import type { Vehicle } from "../../../shared/vehicle.type";
 import type { Trip } from "../../../shared/trip.type";
-import { getTrips } from "@/services/tripService";
 
 type StatCardProps = {
     label: string;
     value: string;
     helper: string;
+    helperClassName?: string;
 };
 
-const StatCard = ({ label, value, helper }: StatCardProps) => {
+const StatCard = ({ label, value, helper, helperClassName }: StatCardProps) => {
     return (
         <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
             <p className="text-xs text-slate-400">{label}</p>
             <p className="mt-2 text-2xl font-semibold text-slate-50">{value}</p>
-            <p className="mt-1 text-xs text-emerald-300">{helper}</p>
+            <p className={`mt-1 text-xs ${helperClassName ?? "text-emerald-300"}`}>{helper}</p>
         </div>
     );
 };
@@ -79,15 +81,10 @@ const Dashboard = () => {
         };
     }, []);
 
-
     const rawName =
-        (user as any)?.pseudo ??
-        (user as any)?.name ??
-        (user as any)?.email ??
-        t("common.user");
+        (user as any)?.pseudo ?? (user as any)?.name ?? (user as any)?.email ?? t("common.user");
 
-    const firstName =
-        typeof rawName === "string" ? rawName.split(" ")[0] : t("common.user");
+    const firstName = typeof rawName === "string" ? rawName.split(" ")[0] : t("common.user");
 
     const latestTrips = [...trips]
         .sort((a: any, b: any) => {
@@ -102,6 +99,10 @@ const Dashboard = () => {
         return sum + (Number.isFinite(v) ? v : 0);
     }, 0);
 
+    const { helperText: co2HelperText, helperClassName: co2HelperClassName } = getCo2Benchmark({
+        totalCo2Kg,
+        isLoading: tripsLoading,
+    });
 
     return (
         <main className="min-h-screen bg-slate-950 text-slate-50 px-4 pb-24 pt-6">
@@ -142,7 +143,8 @@ const Dashboard = () => {
                     <StatCard
                         label={t("dashboard.stats.co2.label")}
                         value={tripsLoading ? "..." : `${totalCo2Kg.toFixed(2)} kg`}
-                        helper={t("dashboard.stats.co2.helper")}
+                        helper={co2HelperText}
+                        helperClassName={co2HelperClassName}
                     />
                 </section>
 
@@ -162,9 +164,7 @@ const Dashboard = () => {
                         </p>
 
                         <ul className="mt-4 space-y-2 text-xs text-slate-400">
-                            {tripsLoading && (
-                                <li>{t("dashboard.latestTrips.loading") ?? "Chargement des trajets..."}</li>
-                            )}
+                            {tripsLoading && <li>{t("dashboard.latestTrips.loading") ?? "Chargement des trajets..."}</li>}
 
                             {!tripsLoading && latestTrips.length === 0 && (
                                 <li>{t("dashboard.latestTrips.empty") ?? "Aucun trajet pour le moment."}</li>
@@ -180,9 +180,7 @@ const Dashboard = () => {
                     </div>
 
                     <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
-                        <h2 className="text-sm font-medium text-slate-100">
-                            {t("dashboard.nextSteps.title")}
-                        </h2>
+                        <h2 className="text-sm font-medium text-slate-100">{t("dashboard.nextSteps.title")}</h2>
                         <ol className="mt-3 space-y-2 list-decimal list-inside text-sm text-slate-400">
                             <li>{t("dashboard.nextSteps.step1")}</li>
                             <li>{t("dashboard.nextSteps.step2")}</li>
