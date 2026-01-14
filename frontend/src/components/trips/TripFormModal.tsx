@@ -1,7 +1,9 @@
-// frontend/src/components/trips/TripFormModal.tsx
-import { useEffect, useMemo, useState } from "react";
-import type { Vehicle } from "../../../../shared/vehicle.type";
+import { useEffect, useState } from "react";
 import type { Trip } from "../../../../shared/trip.type";
+import type { Vehicle } from "../../../../shared/vehicle.type";
+import { useTranslation } from "@/language/useTranslation";
+import { PUBLIC_TRANSPORTS } from "../../types/trips";
+import { createVehicle } from "@/services/vehicleService";
 
 type CreateTripPayload = {
     date: string;
@@ -10,309 +12,329 @@ type CreateTripPayload = {
     distanceKm: number;
     vehicleId: string;
     tag?: string;
+    co2Kg: number;
 };
 
-type Props = {
+type TripFormModalProps = {
     open: boolean;
     onClose: () => void;
-    vehicles?: Vehicle[];
+    vehicles: Vehicle[];
     onSubmit: (payload: CreateTripPayload) => Promise<void>;
-    saving?: boolean;
-    submitError?: string | null;
     initialTrip?: Trip | null;
+    onVehicleCreated?: () => void;
 };
 
-export default function TripFormModal({
-                                          open,
-                                          onClose,
-                                          vehicles = [],
-                                          onSubmit,
-                                          saving = false,
-                                          submitError = null,
-                                          initialTrip = null,
-                                      }: Props) {
-    const [form, setForm] = useState({
-        date: "",
-        fromCity: "",
-        toCity: "",
-        distanceKm: "",
-        vehicleId: "",
-        tag: "",
-    });
+const TripFormModal = ({
+                           open,
+                           onClose,
+                           vehicles,
+                           onSubmit,
+                           initialTrip,
+                           onVehicleCreated
+                       }: TripFormModalProps) => {
+    const { t } = useTranslation();
 
-    const [localError, setLocalError] = useState<string | null>(null);
+    const [entryMode, setEntryMode] = useState<'PERSONAL' | 'PUBLIC'>('PERSONAL');
 
-    const vehiclesSorted = useMemo(() => {
-        return [...vehicles].sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
-    }, [vehicles]);
+    const [date, setDate] = useState("");
+    const [fromCity, setFromCity] = useState("");
+    const [toCity, setToCity] = useState("");
+    const [distanceKm, setDistanceKm] = useState<number | "">("");
+    const [vehicleId, setVehicleId] = useState("");
+    const [tag, setTag] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const [selectedTransportKey, setSelectedTransportKey] = useState(PUBLIC_TRANSPORTS[0].key);
 
     useEffect(() => {
-        function onKeyDown(e: KeyboardEvent) {
-            if (e.key === "Escape") onClose();
+        if (open) {
+            if (initialTrip) {
+                setDate(initialTrip.date);
+                setFromCity(initialTrip.fromCity);
+                setToCity(initialTrip.toCity);
+                setDistanceKm(initialTrip.distanceKm);
+                setVehicleId(initialTrip.vehicleId?.toString() ?? "");
+                setTag(initialTrip.tag || "");
+                setEntryMode('PERSONAL');
+            } else {
+                const today = new Date().toISOString().split("T")[0];
+                setDate(today);
+                setFromCity("");
+                setToCity("");
+                setDistanceKm("");
+                setTag("");
+                if (vehicles.length > 0) {
+                    setVehicleId(vehicles[0].id.toString());
+                }
+                setEntryMode('PERSONAL');
+            }
         }
-        if (open) window.addEventListener("keydown", onKeyDown);
-        return () => window.removeEventListener("keydown", onKeyDown);
-    }, [open, onClose]);
+    }, [open, initialTrip, vehicles]);
 
-    useEffect(() => {
-        if (!open) return;
-        setLocalError(null);
-    }, [open]);
+    const calculateCo2 = (dist: number) => {
+        if (!dist || dist <= 0) return 0;
 
-    function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
-        const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
-    }
-
-    useEffect(() => {
-        if (!open) return;
-
-        if (initialTrip) {
-            setForm({
-                date: String((initialTrip as any).date ?? ""),
-                fromCity: String((initialTrip as any).fromCity ?? ""),
-                toCity: String((initialTrip as any).toCity ?? ""),
-                distanceKm: String((initialTrip as any).distanceKm ?? ""),
-                vehicleId: String((initialTrip as any).vehicleId ?? ""),
-                tag: String((initialTrip as any).tag ?? ""),
-            });
-        } else {
-            setForm({
-                date: "",
-                fromCity: "",
-                toCity: "",
-                distanceKm: "",
-                vehicleId: "",
-                tag: "",
-            });
+        if (entryMode === 'PUBLIC') {
+            const mode = PUBLIC_TRANSPORTS.find(t => t.key === selectedTransportKey);
+            return mode ? (dist * mode.co2PerKm) / 1000 : 0;
         }
-    }, [open, initialTrip]);
 
-    async function handleSubmit(e: React.FormEvent) {
+        const v = vehicles.find((veh) => veh.id.toString() === vehicleId);
+        if (v && v.consumptionLPer100) {
+            return (dist * v.consumptionLPer100 / 100) * 2.5;
+        }
+        
+        return 0;
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLocalError(null);
+        setLoading(true);
 
-        if (!form.date) return setLocalError("La date est obligatoire.");
-        if (!form.fromCity.trim()) return setLocalError("La ville de départ est obligatoire.");
-        if (!form.toCity.trim()) return setLocalError("La ville d’arrivée est obligatoire.");
+        try {
+            const dist = Number(distanceKm);
+            let finalVehicleId = vehicleId;
+            let finalCo2 = 0;
 
-        const distance = Number(form.distanceKm);
-        if (!form.distanceKm || Number.isNaN(distance) || distance <= 0) {
-            return setLocalError("La distance doit être un nombre > 0.");
-        }
+            if (entryMode === 'PUBLIC') {
+                const mode = PUBLIC_TRANSPORTS.find(t => t.key === selectedTransportKey);
+                if (!mode) return;
 
-        if (!form.vehicleId) return setLocalError("Choisis un véhicule.");
+                finalCo2 = calculateCo2(dist);
 
-        await onSubmit({
-            date: form.date,
-            fromCity: form.fromCity.trim(),
-            toCity: form.toCity.trim(),
-            distanceKm: distance,
-            vehicleId: form.vehicleId,
-            tag: form.tag.trim() || undefined,
-        });
+                let targetVehicle = vehicles.find(v => v.name === mode.label);
 
-        // Reset après succès
-        if (!initialTrip) {
-            setForm({
-                date: "",
-                fromCity: "",
-                toCity: "",
-                distanceKm: "",
-                vehicleId: "",
-                tag: "",
+                if (!targetVehicle) {
+                    targetVehicle = await createVehicle({
+                        name: mode.label,
+                        type: 'Transport',
+                        fuelType: 'autre',
+                        consumptionLPer100: 0,
+                        plate: ''
+                    });
+                    
+                    if (onVehicleCreated) onVehicleCreated();
+                }
+                
+                if (targetVehicle) {
+                    finalVehicleId = targetVehicle.id.toString();
+                }
+
+            } else {
+                finalCo2 = calculateCo2(dist);
+            }
+
+            await onSubmit({
+                date,
+                fromCity,
+                toCity,
+                distanceKm: dist,
+                vehicleId: finalVehicleId,
+                tag,
+                co2Kg: finalCo2
             });
+            
+            onClose(); 
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
         }
-    }
-
-    const effectiveError = localError || submitError;
+    };
 
     if (!open) return null;
 
-    const inputClass =
-        "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-white/35 outline-none transition focus:border-green-400/40 focus:ring-2 focus:ring-green-400/20 disabled:opacity-60";
-
-    const labelClass = "mb-1 block text-xs font-medium text-white/70";
-
     return (
-        <div className="fixed inset-0 z-50">
-            {/* overlay */}
-            <button
-                type="button"
-                onClick={onClose}
-                className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
-                aria-label="Close"
-            />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-gray-950 p-6 shadow-2xl">
+                
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-semibold text-white">
+                        {initialTrip ? t("trips.modal.editTitle") : t("trips.modal.newTitle")}
+                    </h2>
+                    <button 
+                        onClick={onClose} 
+                        className="rounded-full p-1 text-white/50 hover:bg-white/10 hover:text-white transition"
+                    >
+                        ✕
+                    </button>
+                </div>
 
-            {/* modal wrapper (center) */}
-            <div className="relative mx-auto mt-20 w-[92%] max-w-xl">
-                {/* modal */}
-                <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 text-white shadow-[0_30px_90px_-30px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-                    {/* Header */}
-                    <div className="flex items-start justify-between gap-3">
-                        <div>
-                            <p className="text-xs font-medium uppercase tracking-wide text-white/45">
-                                Trajets
-                            </p>
-                            <h2 className="mt-2 text-xl font-semibold tracking-tight text-white">
-                                {initialTrip ? "Modifier le trajet" : "Nouveau trajet"}
-                            </h2>
-                            <p className="mt-1 text-sm text-white/65">
-                                Ajoute un trajet lié à un véhicule.
-                            </p>
-                        </div>
-
+                {!initialTrip && (
+                    <div className="mb-6 flex rounded-xl border border-white/10 bg-white/5 p-1">
                         <button
                             type="button"
-                            onClick={onClose}
-                            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                            onClick={() => setEntryMode('PERSONAL')}
+                            className={`flex-1 rounded-lg py-2 text-sm font-medium transition ${
+                                entryMode === 'PERSONAL' 
+                                    ? 'bg-emerald-600 text-white shadow-md' 
+                                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                            }`}
                         >
-                            Fermer
+                            Mon Véhicule
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setEntryMode('PUBLIC')}
+                            className={`flex-1 rounded-lg py-2 text-sm font-medium transition ${
+                                entryMode === 'PUBLIC' 
+                                    ? 'bg-blue-600 text-white shadow-md' 
+                                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                            }`}
+                        >
+                            Transport Public
                         </button>
                     </div>
+                )}
 
-                    {/* Error */}
-                    {effectiveError && (
-                        <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                            {effectiveError}
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="mb-1.5 block text-xs font-medium text-white/60">
+                            {t("trips.modal.date")}
+                        </label>
+                        <input
+                            type="date"
+                            required
+                            value={date}
+                            onChange={(e) => setDate(e.target.value)}
+                            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="mb-1.5 block text-xs font-medium text-white/60">
+                                {t("trips.modal.from")}
+                            </label>
+                            <input
+                                type="text"
+                                required
+                                value={fromCity}
+                                onChange={(e) => setFromCity(e.target.value)}
+                                placeholder="Paris"
+                                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="mb-1.5 block text-xs font-medium text-white/60">
+                                {t("trips.modal.to")}
+                            </label>
+                            <input
+                                type="text"
+                                required
+                                value={toCity}
+                                onChange={(e) => setToCity(e.target.value)}
+                                placeholder="Lyon"
+                                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="mb-1.5 block text-xs font-medium text-white/60">
+                                {t("trips.modal.distance")}
+                            </label>
+                            <input
+                                type="number"
+                                required
+                                min="0.1"
+                                step="0.1"
+                                value={distanceKm}
+                                onChange={(e) => setDistanceKm(e.target.value === "" ? "" : Number(e.target.value))}
+                                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="mb-1.5 block text-xs font-medium text-white/60">
+                                {t("trips.modal.tag")}
+                            </label>
+                            <input
+                                type="text"
+                                value={tag}
+                                onChange={(e) => setTag(e.target.value)}
+                                placeholder="Travail, Vacances..."
+                                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/20 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            />
+                        </div>
+                    </div>
+
+                    {entryMode === 'PERSONAL' ? (
+                        <div>
+                            <label className="mb-1.5 block text-xs font-medium text-white/60">
+                                {t("trips.modal.vehicle")}
+                            </label>
+                            <select
+                                required
+                                value={vehicleId}
+                                onChange={(e) => setVehicleId(e.target.value)}
+                                className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 [&>option]:bg-gray-900"
+                            >
+                                {vehicles.length === 0 && <option value="">Aucun véhicule</option>}
+                                {vehicles.map((v) => (
+                                    <option key={v.id} value={v.id}>
+                                        {v.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    ) : (
+                        <div>
+                            <label className="mb-1.5 block text-xs font-medium text-white/60">
+                                Type de transport
+                            </label>
+                            <select
+                                value={selectedTransportKey}
+                                onChange={(e) => setSelectedTransportKey(e.target.value)}
+                                className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 [&>option]:bg-gray-900"
+                            >
+                                {PUBLIC_TRANSPORTS.map((t) => (
+                                    <option key={t.key} value={t.key}>
+                                        {t.label} ({t.co2PerKm}g/km)
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                     )}
 
-                    {/* Form */}
-                    <form onSubmit={handleSubmit} className="mt-5 grid gap-4">
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <div>
-                                <label className={labelClass} htmlFor="date">
-                                    Date
-                                </label>
-                                <input
-                                    id="date"
-                                    name="date"
-                                    type="date"
-                                    value={form.date}
-                                    onChange={handleChange}
-                                    className={inputClass}
-                                />
-                            </div>
-
-                            <div>
-                                <label className={labelClass} htmlFor="vehicleId">
-                                    Véhicule
-                                </label>
-                                <select
-                                    id="vehicleId"
-                                    name="vehicleId"
-                                    value={form.vehicleId}
-                                    onChange={handleChange}
-                                    className={inputClass}
-                                >
-                                    <option className="bg-gray-950" value="">
-                                        — Choisir —
-                                    </option>
-                                    {vehiclesSorted.map((v) => (
-                                        <option key={v.id} className="bg-gray-950" value={String(v.id)}>
-                                            {v.name}
-                                        </option>
-                                    ))}
-                                </select>
-
-                                {vehiclesSorted.length === 0 && (
-                                    <p className="mt-2 text-xs text-white/45">
-                                        Aucun véhicule : ajoute-en un avant de créer un trajet.
-                                    </p>
-                                )}
-                            </div>
-
-                            <div>
-                                <label className={labelClass} htmlFor="fromCity">
-                                    Départ
-                                </label>
-                                <input
-                                    id="fromCity"
-                                    name="fromCity"
-                                    type="text"
-                                    value={form.fromCity}
-                                    onChange={handleChange}
-                                    className={inputClass}
-                                    placeholder="Ex: Paris"
-                                />
-                            </div>
-
-                            <div>
-                                <label className={labelClass} htmlFor="toCity">
-                                    Arrivée
-                                </label>
-                                <input
-                                    id="toCity"
-                                    name="toCity"
-                                    type="text"
-                                    value={form.toCity}
-                                    onChange={handleChange}
-                                    className={inputClass}
-                                    placeholder="Ex: Lyon"
-                                />
-                            </div>
-
-                            <div>
-                                <label className={labelClass} htmlFor="distanceKm">
-                                    Distance (km)
-                                </label>
-                                <input
-                                    id="distanceKm"
-                                    name="distanceKm"
-                                    type="number"
-                                    min="0"
-                                    step="0.1"
-                                    value={form.distanceKm}
-                                    onChange={handleChange}
-                                    className={inputClass}
-                                    placeholder="Ex: 465"
-                                />
-                            </div>
-
-                            <div>
-                                <label className={labelClass} htmlFor="tag">
-                                    Tag (optionnel)
-                                </label>
-                                <input
-                                    id="tag"
-                                    name="tag"
-                                    type="text"
-                                    value={form.tag}
-                                    onChange={handleChange}
-                                    className={inputClass}
-                                    placeholder="Ex: boulot"
-                                />
-                            </div>
+                    <div className={`mt-2 flex items-center justify-between rounded-xl border border-white/10 px-4 py-3 transition-colors ${
+                        entryMode === 'PUBLIC' ? 'bg-blue-500/10' : 'bg-emerald-500/10'
+                    }`}>
+                        <span className="text-sm font-medium text-white/70">Impact CO2 estimé</span>
+                        <div className="text-right">
+                            <span className={`text-lg font-bold ${
+                                entryMode === 'PUBLIC' ? 'text-blue-300' : 'text-emerald-300'
+                            }`}>
+                                {calculateCo2(Number(distanceKm)).toFixed(2)}
+                            </span>
+                            <span className="ml-1 text-sm font-normal text-white/50">kg</span>
                         </div>
+                    </div>
 
-                        {/* Actions */}
-                        <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                disabled={saving}
-                                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white disabled:opacity-60"
-                            >
-                                Annuler
-                            </button>
-
-                            <button
-                                type="submit"
-                                disabled={saving || vehiclesSorted.length === 0}
-                                className="rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_30px_-12px_rgba(16,185,129,0.55)] transition hover:brightness-110 disabled:opacity-60"
-                            >
-                                {saving ? "Enregistrement…" : initialTrip ? "Mettre à jour" : "Créer"}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                {/* little hint footer (optional, subtle) */}
-                <p className="mt-3 text-center text-xs text-white/40">
-                    Astuce : Échap pour fermer le modal.
-                </p>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/70 transition hover:bg-white/10 hover:text-white"
+                        >
+                            {t("trips.modal.cancel")}
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className={`rounded-xl px-6 py-2 text-sm font-bold text-white shadow-lg transition hover:brightness-110 ${
+                                entryMode === 'PUBLIC' 
+                                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600' 
+                                    : 'bg-gradient-to-r from-emerald-600 to-teal-600'
+                            }`}
+                        >
+                            {loading ? "..." : (initialTrip ? t("trips.modal.submitEdit") : t("trips.modal.submitCreate"))}
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     );
-}
+};
+
+export default TripFormModal;

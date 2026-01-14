@@ -14,6 +14,7 @@ type CreateTripPayload = {
     distanceKm: number;
     vehicleId: string;
     tag?: string;
+    co2Kg?: number;
 };
 
 const GlassCard = ({
@@ -45,8 +46,6 @@ const TripsPage = () => {
     const [openModal, setOpenModal] = useState(false);
     const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
 
-   
-
     const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
     const getToken = () => localStorage.getItem("token");
 
@@ -72,6 +71,11 @@ const TripsPage = () => {
     const fetchVehicles = async () => {
         const v = await getVehicles();
         setVehicles(v);
+    };
+
+    // Fonction passée au modal pour recharger la liste si un véhicule "transport" est créé auto
+    const refreshVehicles = async () => {
+        await fetchVehicles();
     };
 
     useEffect(() => {
@@ -146,20 +150,12 @@ const TripsPage = () => {
         }
     }
 
-    // Petites helpers UI (sans modifier la logique)
+    // Petites helpers UI
     const countText = useMemo(() => {
         if (loading) return "…";
         if (error) return t("trips.list.status.error") ?? "Erreur";
         return `${trips.length} ${t("trips.list.countSuffix")}`;
     }, [loading, error, trips.length, t]);
-
-    const filterBtnClass = (active: boolean) =>
-        [
-            "rounded-xl px-3 py-2 text-xs font-semibold transition",
-            active
-                ? "border border-emerald-400/30 bg-emerald-500/10 text-emerald-200"
-                : "border border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white",
-        ].join(" ");
 
     return (
         <div className="relative min-h-screen overflow-hidden bg-gray-950 text-white">
@@ -201,8 +197,6 @@ const TripsPage = () => {
                         </button>
                     </header>
 
-                    
-
                     {/* List */}
                     <GlassCard>
                         <div className="flex items-center justify-between gap-2 border-b border-white/10 px-5 py-4">
@@ -216,8 +210,8 @@ const TripsPage = () => {
                                 <span className="text-xs text-red-300">Erreur</span>
                             ) : (
                                 <span className="text-xs text-white/45">
-                  {trips.length} {t("trips.list.countSuffix")}
-                </span>
+                                    {trips.length} {t("trips.list.countSuffix")}
+                                </span>
                             )}
                         </div>
 
@@ -252,8 +246,8 @@ const TripsPage = () => {
 
                                                 {trip.tag && (
                                                     <span className="mt-2 inline-flex rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-white/70">
-                            {trip.tag}
-                          </span>
+                                                        {trip.tag}
+                                                    </span>
                                                 )}
                                             </div>
 
@@ -303,6 +297,7 @@ const TripsPage = () => {
                     vehicles={vehicles}
                     onSubmit={handleSubmitTrip}
                     initialTrip={editingTrip}
+                    onVehicleCreated={refreshVehicles}
                 />
             </main>
         </div>

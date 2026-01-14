@@ -1,4 +1,3 @@
-
 // backend/src/models/trips.model.ts
 import pool from '../config/db';
 
@@ -68,7 +67,8 @@ export async function insertTrip(args: {
     return result.rows[0];
 }
 
-export async function deleteTripByUser(userId: number, tripId: number) {
+// CORRECTION ICI : userId est un string (UUID), pas un number
+export async function deleteTripByUser(userId: string, tripId: number) {
     const result = await pool.query(
         `DELETE FROM trips
      WHERE id = $1 AND user_id = $2
@@ -88,7 +88,8 @@ type UpdateTripInput = {
     co2Kg?: number;
 };
 
-export async function updateTripByUser(userId: number, tripId: number, input: UpdateTripInput) {
+// CORRECTION ICI : userId est un string (UUID)
+export async function updateTripByUser(userId: string, tripId: number, input: UpdateTripInput) {
     const sets: string[] = [];
     const values: any[] = [];
     let idx = 1;
