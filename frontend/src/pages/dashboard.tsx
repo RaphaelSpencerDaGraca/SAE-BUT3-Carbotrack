@@ -1,13 +1,16 @@
 // frontend/src/pages/dashboard.tsx
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useTranslation } from "@/language/useTranslation";
 import { getVehicles } from "@/services/vehicleService";
 import { getTrips } from "@/services/tripService";
+// 1. On importe le service existant, exactement comme pour getTrips
+import { getUserProfile } from "@/services/userProfileService"; 
 import { getCo2Benchmark } from "@/services/co2StatService";
 import type { Vehicle } from "../../../shared/vehicle.type";
 import type { Trip } from "../../../shared/trip.type";
 
+// --- Types ---
 type StatCardProps = {
     label: string;
     value: string;
@@ -15,6 +18,16 @@ type StatCardProps = {
     helperClassName?: string;
 };
 
+// Interface locale pour le profil (pour le typage du state)
+interface UserProfileData {
+    user_id: string;
+    emission_co2_transport: number | null;
+    emission_co2_lifestyle: number | null;
+    pseudo?: string;
+    genre?: string;
+}
+
+// --- Composants UI ---
 const GlassCard = ({
                        children,
                        className = "",
@@ -47,6 +60,7 @@ const StatCard = ({ label, value, helper, helperClassName }: StatCardProps) => {
     );
 };
 
+// --- Utils ---
 function interpolate(template: string, values: Record<string, string>): string {
     return template.replace(/\{(\w+)}/g, (match, key) => {
         return Object.prototype.hasOwnProperty.call(values, key) ? values[key] : match;
@@ -62,15 +76,20 @@ const Dashboard = () => {
     const { user, logout } = useAuth();
     const { t } = useTranslation();
 
+    // États existants
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [vehiclesLoading, setVehiclesLoading] = useState(false);
 
     const [trips, setTrips] = useState<Trip[]>([]);
     const [tripsLoading, setTripsLoading] = useState(false);
 
+    // 2. Nouvel état pour stocker le profil récupéré via le service
+    const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
+    const [profileLoading, setProfileLoading] = useState(false);
+
+    // Chargement Véhicules
     useEffect(() => {
         let mounted = true;
-
         (async () => {
             try {
                 setVehiclesLoading(true);
@@ -78,22 +97,19 @@ const Dashboard = () => {
                 if (!mounted) return;
                 setVehicles(data);
             } catch (e) {
-                console.error("Erreur chargement véhicules (dashboard):", e);
+                console.error("Erreur chargement véhicules:", e);
                 if (!mounted) return;
                 setVehicles([]);
             } finally {
                 if (mounted) setVehiclesLoading(false);
             }
         })();
-
-        return () => {
-            mounted = false;
-        };
+        return () => { mounted = false; };
     }, []);
 
+    // Chargement Trajets
     useEffect(() => {
         let mounted = true;
-
         (async () => {
             try {
                 setTripsLoading(true);
@@ -101,24 +117,42 @@ const Dashboard = () => {
                 if (!mounted) return;
                 setTrips(data);
             } catch (e) {
-                console.error("Erreur chargement trajets (dashboard):", e);
+                console.error("Erreur chargement trajets:", e);
                 if (!mounted) return;
                 setTrips([]);
             } finally {
                 if (mounted) setTripsLoading(false);
             }
         })();
-
-        return () => {
-            mounted = false;
-        };
+        return () => { mounted = false; };
     }, []);
 
-    const rawName =
-        (user as any)?.pseudo ?? (user as any)?.name ?? (user as any)?.email ?? t("common.user");
+    // 3. Chargement Profil (Utilisation du service existant)
+    useEffect(() => {
+        let mounted = true;
+        const userId = (user as any)?.id || (user as any)?.user_id;
 
+        if (!userId) return;
+
+        (async () => {
+            try {
+                setProfileLoading(true);
+                const data = await getUserProfile(userId);
+                if (mounted) setUserProfile(data as UserProfileData);
+                
+            } catch (e) {
+                console.error("Erreur chargement profil:", e);
+            } finally {
+                if (mounted) setProfileLoading(false);
+            }
+        })();
+        return () => { mounted = false; };
+    }, [user]);
+
+    const rawName = (user as any)?.pseudo ?? (user as any)?.name ?? (user as any)?.email ?? t("common.user");
     const firstName = typeof rawName === "string" ? rawName.split(" ")[0] : t("common.user");
 
+    // Tri des trajets récents
     const latestTrips = useMemo(() => {
         return [...trips]
             .sort((a: any, b: any) => {
@@ -129,20 +163,29 @@ const Dashboard = () => {
             .slice(0, 3);
     }, [trips]);
 
+    // 4. Calcul du Total CO2 combiné
     const totalCo2Kg = useMemo(() => {
-        return trips.reduce((sum, trip) => {
+        // A. Somme des trajets (calculé côté front, comme avant)
+        const transportSum = trips.reduce((sum, trip) => {
             const v = Number((trip as any).co2Kg ?? 0);
             return sum + (Number.isFinite(v) ? v : 0);
         }, 0);
-    }, [trips]);
+
+        // B. Valeur Lifestyle (venant de la BDD via le profil)
+        const lifestyleSum = userProfile?.emission_co2_lifestyle 
+            ? Number(userProfile.emission_co2_lifestyle) 
+            : 0;
+
+        // C. Total
+        return transportSum + lifestyleSum;
+    }, [trips, userProfile]);
 
     const co2Stat = useMemo(() => {
-        return getCo2Benchmark({ totalCo2Kg, isLoading: tripsLoading });
-    }, [totalCo2Kg, tripsLoading]);
+        return getCo2Benchmark({ totalCo2Kg, isLoading: tripsLoading || profileLoading });
+    }, [totalCo2Kg, tripsLoading, profileLoading]);
 
     const co2Helper = useMemo(() => {
         const template = t(co2Stat.helperKey);
-
         const values = co2Stat.helperValues;
         if (!values) return template;
 
@@ -155,7 +198,7 @@ const Dashboard = () => {
 
     return (
         <div className="relative min-h-screen overflow-hidden bg-gray-950 text-white">
-            {/* Background premium (même style que login) */}
+            {/* Background premium */}
             <div className="pointer-events-none absolute inset-0">
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-950 via-gray-950 to-gray-900" />
                 <div className="absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full bg-green-500/12 blur-[90px]" />
@@ -217,7 +260,8 @@ const Dashboard = () => {
                         />
                         <StatCard
                             label={t("dashboard.stats.co2.label")}
-                            value={tripsLoading ? "…" : `${totalCo2Kg.toFixed(2)} kg`}
+                            // Affichage du total combiné
+                            value={(tripsLoading || profileLoading) ? "…" : `${totalCo2Kg.toFixed(2)} kg`}
                             helper={co2Helper}
                             helperClassName={co2Stat.helperClassName}
                         />
