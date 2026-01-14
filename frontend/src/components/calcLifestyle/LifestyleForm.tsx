@@ -57,9 +57,13 @@ export const LifestyleForm: React.FC<LifestyleFormProps> = ({ produits }) => {
       <div className="grid gap-4 md:grid-cols-2">
         <SectionCard title="Alimentation" categorie="alimentation" produits={produits} selectedItems={formData.alimentation} onItemsChange={(items) => setFormData(prev => ({ ...prev, alimentation: items }))} />
       </div>
-      <button onClick={calculateEmissions} className="w-full rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-brand-600">
-        Calculer mon empreinte simulée
-      </button>
+        <button
+            type="button"
+            onClick={calculateEmissions}
+            className="w-full rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_30px_-12px_rgba(16,185,129,0.55)] transition hover:brightness-110"
+        >
+            Calculer mon empreinte simulée
+        </button>
 
       {saveMessage && (
          <div className={`rounded-lg p-3 text-sm ${saveMessage.startsWith('✓') ? 'bg-green-900/30 text-green-300' : 'bg-red-900/30 text-red-300'}`}>
@@ -69,7 +73,11 @@ export const LifestyleForm: React.FC<LifestyleFormProps> = ({ produits }) => {
 
       {result && (
         <>
-            <button onClick={addEmissions} className="w-full rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700">
+            <button
+                type="button"
+                onClick={addEmissions}
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+            >
                 Mettre à jour mon profil avec cette estimation
             </button>
             <ResultDisplay total={result.total} breakdown={result.breakdown} />
