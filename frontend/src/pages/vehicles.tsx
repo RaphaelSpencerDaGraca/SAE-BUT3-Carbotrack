@@ -193,12 +193,12 @@ const VehiclesPage = () => {
         e.preventDefault();
 
         if (!form.name.trim()) {
-            setFormError("Le nom du véhicule est obligatoire.");
+            setFormError("vehicles.error.nameRequired");
             return;
         }
 
         if (!form.fuelType) {
-            setFormError("Le type de carburant est obligatoire.");
+            setFormError("vehicles.error.fuelRequired");
             return;
         }
 
@@ -237,7 +237,7 @@ const VehiclesPage = () => {
     }
 
     async function handleDeleteVehicle(id: Vehicle["id"]) {
-        const ok = window.confirm("Supprimer ce véhicule ?");
+        const ok = window.confirm(t("vehicles.delete.confirm"));
         if (!ok) return;
 
         try {
@@ -245,7 +245,7 @@ const VehiclesPage = () => {
             setVehicles((prev) => prev.filter((v) => v.id !== id));
         } catch (e: any) {
             console.error("Erreur suppression véhicule:", e);
-            alert("Suppression impossible (trajets liés ?) ou erreur serveur.");
+            alert(t("vehicles.delete.error"));
         }
     }
 
@@ -318,7 +318,7 @@ const VehiclesPage = () => {
                             ].join(" ")}
                         >
                             {isCreating
-                                ? t("vehicles.action.cancelNewVehicle") ?? "Annuler"
+                                ? t("vehicles.action.cancelNewVehicle")
                                 : t("vehicles.action.newVehicle")}
                         </button>
                     </header>
@@ -329,14 +329,14 @@ const VehiclesPage = () => {
                             <div className="flex items-start justify-between gap-3">
                                 <div>
                                     <h2 className="text-sm font-semibold text-white">
-                                        {t("vehicles.form.title") ?? "Ajouter un véhicule"}
+                                        {t("vehicles.form.title")}
                                     </h2>
                                     <p className="mt-1 text-xs text-white/55">
-                                        Remplis les infos, et on peut auto-estimer la conso via le dataset.
+                                        {t("vehicles.form.subtitle")}
                                     </p>
                                 </div>
                                 {formError && (
-                                    <p className="text-xs text-red-300">{typeof formError === "string" ? t(formError) : formError}</p>
+                                    <p className="text-xs text-red-300">{t(formError)}</p>
                                 )}
                             </div>
 
@@ -344,7 +344,7 @@ const VehiclesPage = () => {
                                 {/* Nom */}
                                 <div className="md:col-span-2">
                                     <label className="mb-1 block text-xs font-medium text-white/70">
-                                        {t("vehicles.form.name") ?? "Nom du véhicule"}
+                                        {t("vehicles.form.name")}
                                     </label>
                                     <input
                                         name="name"
@@ -362,7 +362,7 @@ const VehiclesPage = () => {
                                 {/* Immatriculation */}
                                 <div>
                                     <label className="mb-1 block text-xs font-medium text-white/70">
-                                        {t("vehicles.form.plate") ?? "Immatriculation"}
+                                        {t("vehicles.form.plate")}
                                     </label>
                                     <input
                                         name="plate"
@@ -376,7 +376,7 @@ const VehiclesPage = () => {
                                 {/* Type */}
                                 <div>
                                     <label className="mb-1 block text-xs font-medium text-white/70">
-                                        {t("vehicles.form.type") ?? "Type de véhicule"}
+                                        {t("vehicles.form.type")}
                                     </label>
                                     <input
                                         name="type"
@@ -390,7 +390,7 @@ const VehiclesPage = () => {
                                 {/* Carburant */}
                                 <div>
                                     <label className="mb-1 block text-xs font-medium text-white/70">
-                                        {t("vehicles.form.fuelType") ?? "Type de carburant"}
+                                        {t("vehicles.form.fuelType")}
                                     </label>
                                     <select
                                         name="fuelType"
@@ -400,19 +400,19 @@ const VehiclesPage = () => {
                                         className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none transition focus:border-green-400/40 focus:ring-2 focus:ring-green-400/20"
                                     >
                                         <option className="bg-gray-950" value="essence">
-                                            {t("vehicles.fuel.essence") ?? "Essence"}
+                                            {t("vehicles.fuel.essence")}
                                         </option>
                                         <option className="bg-gray-950" value="diesel">
-                                            {t("vehicles.fuel.diesel") ?? "Diesel"}
+                                            {t("vehicles.fuel.diesel")}
                                         </option>
                                         <option className="bg-gray-950" value="electrique">
-                                            {t("vehicles.fuel.electrique") ?? "Électrique"}
+                                            {t("vehicles.fuel.electrique")}
                                         </option>
                                         <option className="bg-gray-950" value="hybride">
-                                            {t("vehicles.fuel.hybride") ?? "Hybride"}
+                                            {t("vehicles.fuel.hybride")}
                                         </option>
                                         <option className="bg-gray-950" value="gpl">
-                                            {t("vehicles.fuel.gpl") ?? "GPL"}
+                                            {t("vehicles.fuel.gpl")}
                                         </option>
                                     </select>
                                 </div>
@@ -420,7 +420,7 @@ const VehiclesPage = () => {
                                 {/* Consommation */}
                                 <div>
                                     <label className="mb-1 block text-xs font-medium text-white/70">
-                                        {t("vehicles.form.consumption") ?? "Conso (L / 100 km)"}
+                                        {t("vehicles.form.consumption")}
                                     </label>
 
                                     <div className="flex gap-2">
@@ -440,9 +440,9 @@ const VehiclesPage = () => {
                                             onClick={handleEstimate}
                                             disabled={estimating || !form.name.trim()}
                                             className="shrink-0 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs font-semibold text-white/80 transition hover:bg-white/10 disabled:opacity-60"
-                                            title="Auto-remplir depuis le dataset"
+                                            title={t("vehicles.form.autoTooltip")}
                                         >
-                                            {estimating ? "Auto…" : "Auto"}
+                                            {estimating ? t("vehicles.form.autoEstimating") : t("vehicles.form.auto")}
                                         </button>
                                     </div>
                                 </div>
@@ -457,7 +457,7 @@ const VehiclesPage = () => {
                                         }}
                                         className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
                                     >
-                                        {t("common.cancel") ?? "Annuler"}
+                                        {t("common.cancel")}
                                     </button>
                                     <button
                                         type="submit"
@@ -465,8 +465,8 @@ const VehiclesPage = () => {
                                         className="rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_30px_-12px_rgba(16,185,129,0.55)] transition hover:brightness-110 disabled:opacity-60"
                                     >
                                         {saving
-                                            ? t("common.saving") ?? "Enregistrement…"
-                                            : t("vehicles.form.submit") ?? "Enregistrer"}
+                                            ? t("common.saving")
+                                            : t("vehicles.form.submit")}
                                     </button>
                                 </div>
                             </form>
