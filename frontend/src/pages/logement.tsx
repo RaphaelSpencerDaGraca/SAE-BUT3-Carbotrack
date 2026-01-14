@@ -130,7 +130,7 @@ const LogementsPage = () => {
             superficie: formLogement.superficie,
             nombre_pieces: formLogement.nombre_pieces,
             type_chauffage_id: formLogement.type_chauffage_id,
-            classe_isolation: formLogement.classe_isolation
+            classe_isolation: formLogement.classe_isolation as any
         };
 
         try {
