@@ -186,7 +186,7 @@ SELECT * FROM (VALUES
     ('Cèpe', 'Fruits et Légumes', 'Légumes', 0.80, 'kg', 'Base Carbone'::produit_source_enum, 'LEG-CHA-002', 'Bolet / Cèpe'),
     ('Girolle', 'Fruits et Légumes', 'Légumes', 0.80, 'kg', 'Base Carbone'::produit_source_enum, 'LEG-CHA-003', 'Chanterelle / Girolle'),
     ('Pleurote', 'Fruits et Légumes', 'Légumes', 1.20, 'kg', 'Base Carbone'::produit_source_enum, 'LEG-CHA-004', 'Pleurote'),
-    ('Shiitake', 'Fruits et Légumes', 'Légumes', 1.30, 'kg', 'Base Carbone'::produit_source_enum, 'LEG-CHA-005', 'Lentin du chêne')
+    ('Shiitake', 'Fruits et Légumes', 'Légumes', 1.30, 'kg', 'Base Carbone'::produit_source_enum, 'LEG-CHA-005', 'Lentin du chêne'),
 
    
     ('Riz blanc', 'Épicerie salée', 'Féculents', 2.5, 'kg', 'Base Carbone'::produit_source_enum, 'AGRI-FEC-011', 'Riz blanc standard'),
