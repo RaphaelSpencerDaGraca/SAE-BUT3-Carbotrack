@@ -59,12 +59,10 @@ export default function TripFormModal({
         setLocalError(null);
     }, [open]);
 
-
     function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
     }
-
 
     useEffect(() => {
         if (!open) return;
@@ -131,146 +129,189 @@ export default function TripFormModal({
 
     if (!open) return null;
 
+    const inputClass =
+        "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-white/35 outline-none transition focus:border-green-400/40 focus:ring-2 focus:ring-green-400/20 disabled:opacity-60";
+
+    const labelClass = "mb-1 block text-xs font-medium text-white/70";
+
     return (
         <div className="fixed inset-0 z-50">
             {/* overlay */}
             <button
                 type="button"
                 onClick={onClose}
-                className="absolute inset-0 bg-black/60"
+                className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
                 aria-label="Close"
             />
 
-            {/* modal */}
-            <div className="relative mx-auto mt-20 w-[92%] max-w-xl rounded-2xl border border-slate-800 bg-slate-950 p-4 text-slate-50 shadow-xl">
-                <div className="flex items-start justify-between gap-3">
-                    <div>
-                        <p className="text-xs uppercase tracking-wide text-slate-500">Trajets</p>
-                        <h2 className="mt-1 text-lg font-semibold">
-                            {initialTrip ? "Modifier le trajet" : "Nouveau trajet"}
-                        </h2>
-                        <p className="mt-1 text-sm text-slate-400">Ajoute un trajet lié à un véhicule.</p>
+            {/* modal wrapper (center) */}
+            <div className="relative mx-auto mt-20 w-[92%] max-w-xl">
+                {/* modal */}
+                <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 text-white shadow-[0_30px_90px_-30px_rgba(0,0,0,0.8)] backdrop-blur-xl">
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-3">
+                        <div>
+                            <p className="text-xs font-medium uppercase tracking-wide text-white/45">
+                                Trajets
+                            </p>
+                            <h2 className="mt-2 text-xl font-semibold tracking-tight text-white">
+                                {initialTrip ? "Modifier le trajet" : "Nouveau trajet"}
+                            </h2>
+                            <p className="mt-1 text-sm text-white/65">
+                                Ajoute un trajet lié à un véhicule.
+                            </p>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                        >
+                            Fermer
+                        </button>
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-200 hover:bg-slate-900"
-                    >
-                        Fermer
-                    </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="mt-4 grid gap-3">
+                    {/* Error */}
                     {effectiveError && (
-                        <div className="rounded-xl border border-red-800 bg-red-950/40 px-3 py-2 text-sm text-red-200">
+                        <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                             {effectiveError}
                         </div>
                     )}
 
-                    <div className="grid gap-3 md:grid-cols-2">
-                        <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Date</label>
-                            <input
-                                name="date"
-                                type="date"
-                                value={form.date}
-                                onChange={handleChange}
-                                className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none"
-                            />
-                        </div>
+                    {/* Form */}
+                    <form onSubmit={handleSubmit} className="mt-5 grid gap-4">
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div>
+                                <label className={labelClass} htmlFor="date">
+                                    Date
+                                </label>
+                                <input
+                                    id="date"
+                                    name="date"
+                                    type="date"
+                                    value={form.date}
+                                    onChange={handleChange}
+                                    className={inputClass}
+                                />
+                            </div>
 
-                        <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Véhicule</label>
-                            <select
-                                name="vehicleId"
-                                value={form.vehicleId}
-                                onChange={handleChange}
-                                className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none"
-                            >
-                                <option value="">— Choisir —</option>
-                                {vehiclesSorted.map((v) => (
-                                    <option key={v.id} value={String(v.id)}>
-                                        {v.name}
+                            <div>
+                                <label className={labelClass} htmlFor="vehicleId">
+                                    Véhicule
+                                </label>
+                                <select
+                                    id="vehicleId"
+                                    name="vehicleId"
+                                    value={form.vehicleId}
+                                    onChange={handleChange}
+                                    className={inputClass}
+                                >
+                                    <option className="bg-gray-950" value="">
+                                        — Choisir —
                                     </option>
-                                ))}
-                            </select>
-                            {vehiclesSorted.length === 0 && (
-                                <p className="mt-1 text-xs text-slate-500">
-                                    Aucun véhicule : ajoute-en un avant de créer un trajet.
-                                </p>
-                            )}
+                                    {vehiclesSorted.map((v) => (
+                                        <option key={v.id} className="bg-gray-950" value={String(v.id)}>
+                                            {v.name}
+                                        </option>
+                                    ))}
+                                </select>
+
+                                {vehiclesSorted.length === 0 && (
+                                    <p className="mt-2 text-xs text-white/45">
+                                        Aucun véhicule : ajoute-en un avant de créer un trajet.
+                                    </p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label className={labelClass} htmlFor="fromCity">
+                                    Départ
+                                </label>
+                                <input
+                                    id="fromCity"
+                                    name="fromCity"
+                                    type="text"
+                                    value={form.fromCity}
+                                    onChange={handleChange}
+                                    className={inputClass}
+                                    placeholder="Ex: Paris"
+                                />
+                            </div>
+
+                            <div>
+                                <label className={labelClass} htmlFor="toCity">
+                                    Arrivée
+                                </label>
+                                <input
+                                    id="toCity"
+                                    name="toCity"
+                                    type="text"
+                                    value={form.toCity}
+                                    onChange={handleChange}
+                                    className={inputClass}
+                                    placeholder="Ex: Lyon"
+                                />
+                            </div>
+
+                            <div>
+                                <label className={labelClass} htmlFor="distanceKm">
+                                    Distance (km)
+                                </label>
+                                <input
+                                    id="distanceKm"
+                                    name="distanceKm"
+                                    type="number"
+                                    min="0"
+                                    step="0.1"
+                                    value={form.distanceKm}
+                                    onChange={handleChange}
+                                    className={inputClass}
+                                    placeholder="Ex: 465"
+                                />
+                            </div>
+
+                            <div>
+                                <label className={labelClass} htmlFor="tag">
+                                    Tag (optionnel)
+                                </label>
+                                <input
+                                    id="tag"
+                                    name="tag"
+                                    type="text"
+                                    value={form.tag}
+                                    onChange={handleChange}
+                                    className={inputClass}
+                                    placeholder="Ex: boulot"
+                                />
+                            </div>
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Départ</label>
-                            <input
-                                name="fromCity"
-                                type="text"
-                                value={form.fromCity}
-                                onChange={handleChange}
-                                className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none"
-                                placeholder="Ex: Paris"
-                            />
-                        </div>
+                        {/* Actions */}
+                        <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                disabled={saving}
+                                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white disabled:opacity-60"
+                            >
+                                Annuler
+                            </button>
 
-                        <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Arrivée</label>
-                            <input
-                                name="toCity"
-                                type="text"
-                                value={form.toCity}
-                                onChange={handleChange}
-                                className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none"
-                                placeholder="Ex: Lyon"
-                            />
+                            <button
+                                type="submit"
+                                disabled={saving || vehiclesSorted.length === 0}
+                                className="rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_30px_-12px_rgba(16,185,129,0.55)] transition hover:brightness-110 disabled:opacity-60"
+                            >
+                                {saving ? "Enregistrement…" : initialTrip ? "Mettre à jour" : "Créer"}
+                            </button>
                         </div>
+                    </form>
+                </div>
 
-                        <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Distance (km)</label>
-                            <input
-                                name="distanceKm"
-                                type="number"
-                                min="0"
-                                step="0.1"
-                                value={form.distanceKm}
-                                onChange={handleChange}
-                                className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none"
-                                placeholder="Ex: 465"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-medium text-slate-300 mb-1">Tag (optionnel)</label>
-                            <input
-                                name="tag"
-                                type="text"
-                                value={form.tag}
-                                onChange={handleChange}
-                                className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none"
-                                placeholder="Ex: boulot"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="mt-2 flex justify-end gap-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="rounded-full border border-slate-700 px-4 py-1.5 text-xs text-slate-200 hover:bg-slate-900"
-                            disabled={saving}
-                        >
-                            Annuler
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={saving || vehiclesSorted.length === 0}
-                            className="rounded-full bg-emerald-500 px-4 py-1.5 text-xs font-medium text-emerald-950 hover:bg-emerald-400 disabled:opacity-60"
-                        >
-                            {saving ? "Enregistrement…" : initialTrip ? "Mettre à jour" : "Créer"}
-                        </button>
-                    </div>
-                </form>
+                {/* little hint footer (optional, subtle) */}
+                <p className="mt-3 text-center text-xs text-white/40">
+                    Astuce : Échap pour fermer le modal.
+                </p>
             </div>
         </div>
     );

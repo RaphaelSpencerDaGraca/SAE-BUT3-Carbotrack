@@ -6,6 +6,24 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { changePassword, deleteAccount } from "@/services/authService";
 import { getUserProfile, updateUserProfileInfo } from "@/services/userProfileService";
 
+const GlassCard = ({
+                       children,
+                       className = "",
+                   }: {
+    children: React.ReactNode;
+    className?: string;
+}) => (
+    <div
+        className={[
+            "rounded-2xl border border-white/10 bg-white/[0.06] p-5",
+            "shadow-[0_20px_60px_-20px_rgba(0,0,0,0.65)] backdrop-blur-xl",
+            className,
+        ].join(" ")}
+    >
+        {children}
+    </div>
+);
+
 const ProfilePage = () => {
     const { user, logout } = useAuth();
     const { t } = useTranslation();
@@ -26,12 +44,18 @@ const ProfilePage = () => {
     // Feedback UI
     const [message, setMessage] = useState({ type: "", text: "" });
 
+    const email = (user as any)?.email ?? "";
+    const greetingName = pseudo || email || t("common.user");
+
+    const inputClass =
+        "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-white/35 outline-none transition focus:border-green-400/40 focus:ring-2 focus:ring-green-400/20";
+    const labelClass = "mb-1 block text-xs font-medium text-white/70";
+
     // Charger les infos du profil au montage
     useEffect(() => {
         if (user) {
             const userId = (user as any).id || (user as any).user_id;
-            
-            // CORRECTION : On type explicitement (data: any)
+
             getUserProfile(userId).then((data: any) => {
                 if (data) {
                     if (data.pseudo) setPseudo(data.pseudo);
@@ -42,7 +66,6 @@ const ProfilePage = () => {
     }, [user]);
 
     // --- Gestionnaires ---
-
     const handleUpdateProfile = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
@@ -50,7 +73,6 @@ const ProfilePage = () => {
             await updateUserProfileInfo(userId, { pseudo, genre });
             setMessage({ type: "success", text: "Profil mis à jour avec succès !" });
             setIsEditingProfile(false);
-            // Petit hack pour forcer le rafraichissement si besoin, sinon le context s'en charge au reload
         } catch (err) {
             setMessage({ type: "error", text: "Erreur lors de la mise à jour." });
         }
@@ -64,171 +86,306 @@ const ProfilePage = () => {
             setShowPasswordForm(false);
             setPasswords({ current: "", new: "" });
         } catch (err: any) {
-            setMessage({ type: "error", text: err.response?.data?.error || "Erreur mot de passe." });
+            setMessage({
+                type: "error",
+                text: err.response?.data?.error || "Erreur mot de passe.",
+            });
         }
     };
 
     const handleDeleteAccount = async () => {
         try {
             await deleteAccount(deletePassword);
-            logout(); // Déconnexion forcée
+            logout();
         } catch (err: any) {
-            setMessage({ type: "error", text: err.response?.data?.error || "Impossible de supprimer le compte." });
+            setMessage({
+                type: "error",
+                text: err.response?.data?.error || "Impossible de supprimer le compte.",
+            });
         }
     };
 
     return (
-        <main className="min-h-screen bg-slate-950 text-slate-50 px-4 pb-24 pt-6">
-            <div className="mx-auto max-w-4xl space-y-6">
+        <div className="relative min-h-screen overflow-hidden bg-gray-950 text-white">
+            {/* Background premium */}
+            <div className="pointer-events-none absolute inset-0">
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-950 via-gray-950 to-gray-900" />
+                <div className="absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full bg-green-500/12 blur-[90px]" />
+                <div className="absolute -bottom-40 -right-40 h-[520px] w-[520px] rounded-full bg-emerald-400/10 blur-[90px]" />
+                <div
+                    className="absolute inset-0 opacity-[0.08]"
+                    style={{
+                        backgroundImage:
+                            "linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px)",
+                        backgroundSize: "48px 48px",
+                    }}
+                />
+            </div>
 
-                {/* Header */}
-                <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <div>
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{t("profile.title")}</p>
-                        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-                            {t("profile.greeting")}, {pseudo || (user as any)?.email} 👋
-                        </h1>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <LanguageSwitcher />
-                        <button onClick={logout} className="rounded-full border border-red-500/60 bg-red-500/10 px-4 py-1.5 text-xs text-red-200 hover:bg-red-500/20">
-                            {t("common.logout")}
-                        </button>
-                    </div>
-                </header>
+            <main className="relative px-4 pb-24 pt-8">
+                <div className="mx-auto max-w-4xl space-y-6">
+                    {/* Header */}
+                    <header className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                        <div>
+                            <p className="text-xs font-medium uppercase tracking-wide text-white/45">
+                                {t("profile.title")}
+                            </p>
+                            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">
+                                {t("profile.greeting")}, {greetingName} 👋
+                            </h1>
+                            <p className="mt-2 text-sm text-white/65">
+                                {t("profile.subtitle") ?? "Gérez vos informations et la sécurité de votre compte."}
+                            </p>
+                        </div>
 
-                {/* Feedback Message */}
-                {message.text && (
-                    <div className={`p-3 rounded-lg text-sm ${message.type === 'success' ? 'bg-green-900/50 text-green-200' : 'bg-red-900/50 text-red-200'}`}>
-                        {message.text}
-                    </div>
-                )}
+                        <div className="flex items-center gap-3">
+                            <div className="rounded-xl border border-white/10 bg-white/5 px-2 py-1">
+                                <LanguageSwitcher />
+                            </div>
 
-                <div className="grid gap-6 md:grid-cols-2">
-                    
-                    {/* SECTION 1: PROFIL & PRÉFÉRENCES */}
-                    <div className="space-y-6">
-                        <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
-                            <h2 className="text-sm font-medium text-slate-100 mb-4">{t("profile.account.title")}</h2>
-                            
-                            {!isEditingProfile ? (
-                                <div className="space-y-4 text-sm">
+                            <button
+                                onClick={logout}
+                                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                            >
+                                {t("common.logout")}
+                            </button>
+                        </div>
+                    </header>
+
+                    {/* Feedback Message */}
+                    {message.text && (
+                        <div
+                            className={[
+                                "rounded-xl border px-4 py-3 text-sm",
+                                message.type === "success"
+                                    ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-200"
+                                    : "border-red-500/20 bg-red-500/10 text-red-200",
+                            ].join(" ")}
+                        >
+                            {message.text}
+                        </div>
+                    )}
+
+                    <div className="grid gap-6 md:grid-cols-2">
+                        {/* SECTION 1: PROFIL & PRÉFÉRENCES */}
+                        <div className="space-y-6">
+                            <GlassCard>
+                                <div className="flex items-start justify-between gap-3">
                                     <div>
-                                        <p className="text-xs text-slate-500 uppercase">Pseudo</p>
-                                        <p className="text-slate-200">{pseudo || "Non défini"}</p>
+                                        <h2 className="text-sm font-semibold text-white/90">
+                                            {t("profile.account.title")}
+                                        </h2>
+                                        <p className="mt-1 text-xs text-white/55">
+                                            Infos visibles dans l’application.
+                                        </p>
                                     </div>
-                                    <div>
-                                        <p className="text-xs text-slate-500 uppercase">Genre</p>
-                                        <p className="text-slate-200">{genre || "Non défini"}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-slate-500 uppercase">Email</p>
-                                        <p className="text-slate-400">{(user as any)?.email}</p>
-                                    </div>
-                                    <button onClick={() => setIsEditingProfile(true)} className="text-xs text-brand-400 hover:text-brand-300 underline">
-                                        Modifier mes informations
-                                    </button>
-                                </div>
-                            ) : (
-                                <form onSubmit={handleUpdateProfile} className="space-y-4">
-                                    <div>
-                                        <label className="block text-xs text-slate-500 mb-1">Pseudo</label>
-                                        <input 
-                                            type="text" 
-                                            value={pseudo} 
-                                            onChange={e => setPseudo(e.target.value)}
-                                            className="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs text-slate-500 mb-1">Genre</label>
-                                        <select 
-                                            value={genre} 
-                                            onChange={e => setGenre(e.target.value)}
-                                            className="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm"
+
+                                    {!isEditingProfile && (
+                                        <button
+                                            onClick={() => setIsEditingProfile(true)}
+                                            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
                                         >
-                                            <option value="Autre">Autre / Non précisé</option>
-                                            <option value="Homme">Homme</option>
-                                            <option value="Femme">Femme</option>
-                                        </select>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button type="submit" className="bg-brand-600 text-white px-3 py-1.5 rounded text-xs hover:bg-brand-500">Enregistrer</button>
-                                        <button type="button" onClick={() => setIsEditingProfile(false)} className="bg-slate-700 text-slate-300 px-3 py-1.5 rounded text-xs hover:bg-slate-600">Annuler</button>
-                                    </div>
-                                </form>
-                            )}
-                        </section>
-                    </div>
-
-                    {/* SECTION 2: SÉCURITÉ */}
-                    <div className="space-y-6">
-                        <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
-                            <h2 className="text-sm font-medium text-slate-100 mb-4">{t("profile.security.title")}</h2>
-                            
-                            {!showPasswordForm ? (
-                                <button
-                                    onClick={() => setShowPasswordForm(true)}
-                                    className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800"
-                                >
-                                    {t("profile.security.changePassword")}
-                                </button>
-                            ) : (
-                                <form onSubmit={handleChangePassword} className="space-y-3 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                                    <input 
-                                        type="password" 
-                                        placeholder="Mot de passe actuel"
-                                        value={passwords.current}
-                                        onChange={e => setPasswords({...passwords, current: e.target.value})}
-                                        className="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs"
-                                        required
-                                    />
-                                    <input 
-                                        type="password" 
-                                        placeholder="Nouveau mot de passe"
-                                        value={passwords.new}
-                                        onChange={e => setPasswords({...passwords, new: e.target.value})}
-                                        className="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs"
-                                        required
-                                    />
-                                    <div className="flex gap-2 justify-end">
-                                        <button type="button" onClick={() => setShowPasswordForm(false)} className="text-xs text-slate-400 hover:text-white">Annuler</button>
-                                        <button type="submit" className="bg-brand-600 text-white px-3 py-1 rounded text-xs">Valider</button>
-                                    </div>
-                                </form>
-                            )}
-                        </section>
-
-                        <section className="rounded-2xl border border-red-900/30 bg-red-900/10 p-5">
-                            <h2 className="text-sm font-medium text-red-200 mb-2">Vous voulez vraiment partir ? </h2>
-                            {!showDeleteConfirm ? (
-                                <button
-                                    onClick={() => setShowDeleteConfirm(true)}
-                                    className="text-xs text-red-400 hover:text-red-300 underline"
-                                >
-                                    Supprimer mon compte
-                                </button>
-                            ) : (
-                                <div className="space-y-3">
-                                    <p className="text-xs text-red-300">Cette action est irréversible. Entrez votre mot de passe pour confirmer.</p>
-                                    <input 
-                                        type="password" 
-                                        placeholder="Votre mot de passe"
-                                        value={deletePassword}
-                                        onChange={e => setDeletePassword(e.target.value)}
-                                        className="w-full bg-slate-900 border border-red-900/50 rounded p-2 text-xs text-red-100 placeholder-red-900/50"
-                                    />
-                                    <div className="flex gap-2">
-                                        <button onClick={handleDeleteAccount} className="bg-red-600 text-white px-3 py-1.5 rounded text-xs hover:bg-red-500 w-full">Confirmer suppression</button>
-                                        <button onClick={() => setShowDeleteConfirm(false)} className="bg-slate-800 text-slate-300 px-3 py-1.5 rounded text-xs w-full">Annuler</button>
-                                    </div>
+                                            Modifier
+                                        </button>
+                                    )}
                                 </div>
-                            )}
-                        </section>
+
+                                {!isEditingProfile ? (
+                                    <div className="mt-5 space-y-4 text-sm">
+                                        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                                            <p className="text-xs font-medium uppercase tracking-wide text-white/45">
+                                                Pseudo
+                                            </p>
+                                            <p className="mt-1 text-white/90">{pseudo || "Non défini"}</p>
+                                        </div>
+
+                                        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                                            <p className="text-xs font-medium uppercase tracking-wide text-white/45">
+                                                Genre
+                                            </p>
+                                            <p className="mt-1 text-white/90">{genre || "Non défini"}</p>
+                                        </div>
+
+                                        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                                            <p className="text-xs font-medium uppercase tracking-wide text-white/45">
+                                                Email
+                                            </p>
+                                            <p className="mt-1 text-white/70">{email || "—"}</p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleUpdateProfile} className="mt-5 space-y-4">
+                                        <div>
+                                            <label className={labelClass}>Pseudo</label>
+                                            <input
+                                                type="text"
+                                                value={pseudo}
+                                                onChange={(e) => setPseudo(e.target.value)}
+                                                className={inputClass}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className={labelClass}>Genre</label>
+                                            <select
+                                                value={genre}
+                                                onChange={(e) => setGenre(e.target.value)}
+                                                className={inputClass}
+                                            >
+                                                <option className="bg-gray-950" value="Autre">
+                                                    Autre / Non précisé
+                                                </option>
+                                                <option className="bg-gray-950" value="Homme">
+                                                    Homme
+                                                </option>
+                                                <option className="bg-gray-950" value="Femme">
+                                                    Femme
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                        <div className="flex justify-end gap-2 pt-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsEditingProfile(false)}
+                                                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                                            >
+                                                Annuler
+                                            </button>
+
+                                            <button
+                                                type="submit"
+                                                className="rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_30px_-12px_rgba(16,185,129,0.55)] transition hover:brightness-110"
+                                            >
+                                                Enregistrer
+                                            </button>
+                                        </div>
+                                    </form>
+                                )}
+                            </GlassCard>
+                        </div>
+
+                        {/* SECTION 2: SÉCURITÉ */}
+                        <div className="space-y-6">
+                            <GlassCard>
+                                <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                        <h2 className="text-sm font-semibold text-white/90">
+                                            {t("profile.security.title")}
+                                        </h2>
+                                        <p className="mt-1 text-xs text-white/55">
+                                            Mot de passe et actions sensibles.
+                                        </p>
+                                    </div>
+
+                                    {!showPasswordForm && (
+                                        <button
+                                            onClick={() => setShowPasswordForm(true)}
+                                            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                                        >
+                                            {t("profile.security.changePassword")}
+                                        </button>
+                                    )}
+                                </div>
+
+                                {showPasswordForm && (
+                                    <form onSubmit={handleChangePassword} className="mt-5 space-y-3">
+                                        <div>
+                                            <label className={labelClass}>Mot de passe actuel</label>
+                                            <input
+                                                type="password"
+                                                placeholder="••••••••"
+                                                value={passwords.current}
+                                                onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
+                                                className={inputClass}
+                                                required
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className={labelClass}>Nouveau mot de passe</label>
+                                            <input
+                                                type="password"
+                                                placeholder="••••••••"
+                                                value={passwords.new}
+                                                onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
+                                                className={inputClass}
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="flex justify-end gap-2 pt-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPasswordForm(false)}
+                                                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                                            >
+                                                Annuler
+                                            </button>
+
+                                            <button
+                                                type="submit"
+                                                className="rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_30px_-12px_rgba(16,185,129,0.55)] transition hover:brightness-110"
+                                            >
+                                                Valider
+                                            </button>
+                                        </div>
+                                    </form>
+                                )}
+                            </GlassCard>
+
+                            {/* Danger Zone (texte comme avant) */}
+                            <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-5 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.65)]">
+                                <h2 className="text-sm font-medium text-red-200 mb-2">
+                                    Vous voulez vraiment partir ?
+                                </h2>
+
+                                {!showDeleteConfirm ? (
+                                    <button
+                                        onClick={() => setShowDeleteConfirm(true)}
+                                        className="text-xs font-semibold text-red-200/80 underline decoration-red-300/40 underline-offset-4 hover:text-red-100"
+                                    >
+                                        Supprimer mon compte
+                                    </button>
+                                ) : (
+                                    <div className="space-y-3">
+                                        <p className="text-xs text-red-200/80">
+                                            Cette action est irréversible. Entrez votre mot de passe pour confirmer.
+                                        </p>
+
+                                        <input
+                                            type="password"
+                                            placeholder="Votre mot de passe"
+                                            value={deletePassword}
+                                            onChange={(e) => setDeletePassword(e.target.value)}
+                                            className="w-full rounded-xl border border-red-500/20 bg-black/20 px-4 py-2.5 text-sm text-red-100 placeholder:text-red-200/40 outline-none transition focus:ring-2 focus:ring-red-400/20"
+                                        />
+
+                                        <div className="flex gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={handleDeleteAccount}
+                                                className="w-full rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500"
+                                            >
+                                                Confirmer suppression
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowDeleteConfirm(false)}
+                                                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                                            >
+                                                Annuler
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </main>
+            </main>
+        </div>
     );
 };
 

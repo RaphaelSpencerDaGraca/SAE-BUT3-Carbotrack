@@ -1,13 +1,11 @@
 // frontend/src/pages/trips.tsx
-import { useEffect, useState } from 'react';
-import type { Trip } from '../../../shared/trip.type.ts';
-import type { Vehicle } from '../../../shared/vehicle.type.ts';
+import { useEffect, useMemo, useState } from "react";
+import type { Trip } from "../../../shared/trip.type.ts";
+import type { Vehicle } from "../../../shared/vehicle.type.ts";
 import { useTranslation } from "@/language/useTranslation.ts";
 import TripFormModal from "@/components/trips/TripFormModal";
 import { getVehicles } from "@/services/vehicleService";
-import { deleteTrip } from "@/services/tripService";
-import { updateTrip } from "@/services/tripService";
-
+import { deleteTrip, updateTrip } from "@/services/tripService";
 
 type CreateTripPayload = {
     date: string;
@@ -18,18 +16,40 @@ type CreateTripPayload = {
     tag?: string;
 };
 
+const GlassCard = ({
+                       children,
+                       className = "",
+                   }: {
+    children: React.ReactNode;
+    className?: string;
+}) => (
+    <div
+        className={[
+            "rounded-2xl border border-white/10 bg-white/[0.06]",
+            "shadow-[0_20px_60px_-20px_rgba(0,0,0,0.65)] backdrop-blur-xl",
+            className,
+        ].join(" ")}
+    >
+        {children}
+    </div>
+);
+
 const TripsPage = () => {
     const { t } = useTranslation();
+
     const [trips, setTrips] = useState<Trip[]>([]);
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
     const [openModal, setOpenModal] = useState(false);
     const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
 
-    const API_BASE = import.meta.env.VITE_API_URL ?? '/api';
+    // UI-only state (filters) — ne change rien à ta logique actuelle
+    const [activeFilter, setActiveFilter] = useState<"last7" | "month" | "all">("all");
 
-    const getToken = () => localStorage.getItem('token');
+    const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
+    const getToken = () => localStorage.getItem("token");
 
     const fetchTrips = async () => {
         const token = getToken();
@@ -40,10 +60,10 @@ const TripsPage = () => {
         });
 
         if (res.status === 401) {
-            throw new Error('Non authentifié : reconnecte-toi.');
+            throw new Error("Non authentifié : reconnecte-toi.");
         }
         if (!res.ok) {
-            throw new Error('Erreur lors du chargement des trajets');
+            throw new Error("Erreur lors du chargement des trajets");
         }
 
         const data: Trip[] = await res.json();
@@ -62,8 +82,8 @@ const TripsPage = () => {
                 setError(null);
                 await Promise.all([fetchTrips(), fetchVehicles()]);
             } catch (err) {
-                console.error('Erreur chargement trips/vehicles :', err);
-                setError(err instanceof Error ? err.message : 'Erreur inconnue');
+                console.error("Erreur chargement trips/vehicles :", err);
+                setError(err instanceof Error ? err.message : "Erreur inconnue");
             } finally {
                 setLoading(false);
             }
@@ -77,20 +97,20 @@ const TripsPage = () => {
         const token = getToken();
 
         const res = await fetch(`${API_BASE}/trips`, {
-            method: 'POST',
+            method: "POST",
             headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
             body: JSON.stringify(payload),
         });
 
         if (res.status === 401) {
-            throw new Error('Non authentifié : reconnecte-toi.');
+            throw new Error("Non authentifié : reconnecte-toi.");
         }
         if (!res.ok) {
-            const txt = await res.text().catch(() => '');
-            throw new Error(txt || 'Erreur lors de la création du trajet');
+            const txt = await res.text().catch(() => "");
+            throw new Error(txt || "Erreur lors de la création du trajet");
         }
 
         const created: Trip = await res.json();
@@ -101,15 +121,11 @@ const TripsPage = () => {
     const handleSubmitTrip = async (payload: CreateTripPayload) => {
         try {
             if (editingTrip) {
-                // MODE EDIT
                 await updateTrip(editingTrip.id, payload);
-
-                // ✅ C'EST ICI que tu mets ça :
                 await fetchTrips();
                 setEditingTrip(null);
                 setOpenModal(false);
             } else {
-                // MODE CREATE
                 await handleCreateTrip(payload);
             }
         } catch (e) {
@@ -131,148 +147,199 @@ const TripsPage = () => {
         }
     }
 
+    // Petites helpers UI (sans modifier la logique)
+    const countText = useMemo(() => {
+        if (loading) return "…";
+        if (error) return t("trips.list.status.error") ?? "Erreur";
+        return `${trips.length} ${t("trips.list.countSuffix")}`;
+    }, [loading, error, trips.length, t]);
+
+    const filterBtnClass = (active: boolean) =>
+        [
+            "rounded-xl px-3 py-2 text-xs font-semibold transition",
+            active
+                ? "border border-emerald-400/30 bg-emerald-500/10 text-emerald-200"
+                : "border border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white",
+        ].join(" ");
 
     return (
-        <main className="min-h-screen bg-slate-950 text-slate-50 px-4 pb-24 pt-6">
-            <div className="mx-auto max-w-5xl space-y-6">
-                <header className="flex flex-col gap-3 md:flex-row md:items-baseline md:justify-between">
-                    <div>
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                            {t("trips.title")}
-                        </p>
-                        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-                            {t("trips.header")}
-                        </h1>
-                        <p className="mt-1 text-sm text-slate-400">
-                            {t("trips.subtitle")}
-                        </p>
-                    </div>
-
-                    <button
-                        type="button"
-                        onClick={() => setOpenModal(true)}
-                        className="inline-flex items-center justify-center rounded-full border border-emerald-500/60 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-200 shadow-sm hover:bg-emerald-500/20"
-                    >
-                        {t("trips.action.newTrip")}
-                    </button>
-                </header>
-
-                <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
-                    <div className="flex flex-wrap items-center gap-3">
-                        <span className="text-xs font-medium text-slate-400">
-                            {t("trips.filters.label")}
-                        </span>
-
-                        <button className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs text-slate-200 hover:border-emerald-400 hover:text-emerald-200">
-                            {t("trips.filters.last7Days")}
-                        </button>
-                        <button className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs text-slate-200 hover:border-emerald-400 hover:text-emerald-200">
-                            {t("trips.filters.thisMonth")}
-                        </button>
-                        <button className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs text-slate-200 hover:border-emerald-400 hover:text-emerald-200">
-                            {t("trips.filters.all")}
-                        </button>
-                    </div>
-                </section>
-
-                <section className="rounded-2xl border border-slate-800 bg-slate-900/40">
-                    <div className="border-b border-slate-800 px-4 py-3 flex items-center justify-between">
-                        <h2 className="text-sm font-medium text-slate-100">
-                            {t("trips.list.title")}
-                        </h2>
-
-                        {loading ? (
-                            <span className="text-xs text-slate-500">Chargement...</span>
-                        ) : error ? (
-                            <span className="text-xs text-red-400">Erreur</span>
-                        ) : (
-                            <span className="text-xs text-slate-500">
-                                {trips.length} {t("trips.list.countSuffix")}
-                            </span>
-                        )}
-                    </div>
-
-                    {loading ? (
-                        <div className="px-4 py-10 text-center text-sm text-slate-400">
-                            Chargement des trajets...
-                        </div>
-                    ) : error ? (
-                        <div className="px-4 py-10 text-center text-sm text-red-400">
-                            {error}
-                        </div>
-                    ) : trips.length === 0 ? (
-                        <div className="px-4 py-10 text-center text-sm text-slate-400">
-                            {t("trips.list.empty")}
-                        </div>
-                    ) : (
-                        <ul className="divide-y divide-slate-800">
-                            {trips.map((trip) => (
-                                <li
-                                    key={trip.id}
-                                    className="px-4 py-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between"
-                                >
-                                    <div className="space-y-1">
-                                        <p className="text-sm font-medium text-slate-100">
-                                            {trip.fromCity} → {trip.toCity}
-                                        </p>
-                                        <p className="text-xs text-slate-400">
-                                            {trip.date} · {trip.distanceKm} km · {trip.vehicleName}
-                                        </p>
-                                        {trip.tag && (
-                                            <span className="inline-flex rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-300">
-                                                {trip.tag}
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    <div className="flex items-center justify-between gap-4">
-                                        <div className="text-right">
-                                            <p className="text-xs text-slate-400">
-                                                {t("trips.list.co2Label")}
-                                            </p>
-                                            <p className="text-sm font-semibold text-emerald-300">
-                                                {trip.co2Kg.toFixed(1)} kg
-                                            </p>
-                                        </div>
-
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setEditingTrip(trip);
-                                                    setOpenModal(true);
-                                                }}
-                                                className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-[11px] text-slate-200 hover:border-slate-500"
-                                            >
-                                                {t("trips.actions.edit")}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => handleDeleteTrip(trip.id)}
-                                                className="rounded-full border border-red-500/60 bg-red-500/10 px-3 py-1 text-[11px] text-red-200 hover:bg-red-500/20"
-                                            >
-                                                {t("trips.actions.delete")}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </section>
+        <div className="relative min-h-screen overflow-hidden bg-gray-950 text-white">
+            {/* Background premium */}
+            <div className="pointer-events-none absolute inset-0">
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-950 via-gray-950 to-gray-900" />
+                <div className="absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full bg-green-500/12 blur-[90px]" />
+                <div className="absolute -bottom-40 -right-40 h-[520px] w-[520px] rounded-full bg-emerald-400/10 blur-[90px]" />
+                <div
+                    className="absolute inset-0 opacity-[0.08]"
+                    style={{
+                        backgroundImage:
+                            "linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px)",
+                        backgroundSize: "48px 48px",
+                    }}
+                />
             </div>
 
-            <TripFormModal
-                open={openModal}
-                onClose={() => {
-                    setOpenModal(false);
-                    setEditingTrip(null);
-                }}
-                vehicles={vehicles}
-                onSubmit={handleSubmitTrip}
-                initialTrip={editingTrip}
-            />
-        </main>
+            <main className="relative px-4 pb-24 pt-8">
+                <div className="mx-auto max-w-5xl space-y-6">
+                    {/* Header */}
+                    <header className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                        <div>
+                            <p className="text-xs font-medium uppercase tracking-wide text-white/45">
+                                {t("trips.title")}
+                            </p>
+                            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">
+                                {t("trips.header")}
+                            </h1>
+                            <p className="mt-2 text-sm text-white/65">{t("trips.subtitle")}</p>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => setOpenModal(true)}
+                            className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_30px_-12px_rgba(16,185,129,0.55)] transition hover:brightness-110"
+                        >
+                            {t("trips.action.newTrip")}
+                        </button>
+                    </header>
+
+                    {/* Filters */}
+                    <GlassCard className="p-4">
+                        <div className="flex flex-wrap items-center gap-3">
+              <span className="text-xs font-medium text-white/55">
+                {t("trips.filters.label")}
+              </span>
+
+                            <button
+                                type="button"
+                                className={filterBtnClass(activeFilter === "last7")}
+                                onClick={() => setActiveFilter("last7")}
+                            >
+                                {t("trips.filters.last7Days")}
+                            </button>
+
+                            <button
+                                type="button"
+                                className={filterBtnClass(activeFilter === "month")}
+                                onClick={() => setActiveFilter("month")}
+                            >
+                                {t("trips.filters.thisMonth")}
+                            </button>
+
+                            <button
+                                type="button"
+                                className={filterBtnClass(activeFilter === "all")}
+                                onClick={() => setActiveFilter("all")}
+                            >
+                                {t("trips.filters.all")}
+                            </button>
+
+                            <span className="ml-auto text-xs text-white/45">{countText}</span>
+                        </div>
+                    </GlassCard>
+
+                    {/* List */}
+                    <GlassCard>
+                        <div className="flex items-center justify-between gap-2 border-b border-white/10 px-5 py-4">
+                            <h2 className="text-sm font-semibold text-white/90">
+                                {t("trips.list.title")}
+                            </h2>
+
+                            {loading ? (
+                                <span className="text-xs text-white/45">Chargement…</span>
+                            ) : error ? (
+                                <span className="text-xs text-red-300">Erreur</span>
+                            ) : (
+                                <span className="text-xs text-white/45">
+                  {trips.length} {t("trips.list.countSuffix")}
+                </span>
+                            )}
+                        </div>
+
+                        {loading ? (
+                            <div className="px-5 py-10 text-center text-sm text-white/60">
+                                Chargement des trajets…
+                            </div>
+                        ) : error ? (
+                            <div className="px-5 py-10 text-center text-sm text-red-300">
+                                {error}
+                            </div>
+                        ) : trips.length === 0 ? (
+                            <div className="px-5 py-10 text-center text-sm text-white/60">
+                                {t("trips.list.empty")}
+                            </div>
+                        ) : (
+                            <ul className="space-y-3 px-5 py-4">
+                                {trips.map((trip) => (
+                                    <li
+                                        key={trip.id}
+                                        className="rounded-xl border border-white/10 bg-white/5 px-4 py-3"
+                                    >
+                                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-semibold text-white">
+                                                    {trip.fromCity} → {trip.toCity}
+                                                </p>
+
+                                                <p className="mt-1 text-xs text-white/55">
+                                                    {trip.date} · {trip.distanceKm} km · {trip.vehicleName}
+                                                </p>
+
+                                                {trip.tag && (
+                                                    <span className="mt-2 inline-flex rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-white/70">
+                            {trip.tag}
+                          </span>
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-center justify-between gap-4 md:justify-end">
+                                                <div className="text-right">
+                                                    <p className="text-xs text-white/55">{t("trips.list.co2Label")}</p>
+                                                    <p className="text-sm font-semibold text-emerald-300">
+                                                        {trip.co2Kg.toFixed(1)} kg
+                                                    </p>
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setEditingTrip(trip);
+                                                            setOpenModal(true);
+                                                        }}
+                                                        className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                                                    >
+                                                        {t("trips.actions.edit")}
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteTrip(trip.id)}
+                                                        className="rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200 transition hover:bg-red-500/15"
+                                                    >
+                                                        {t("trips.actions.delete")}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </GlassCard>
+                </div>
+
+                <TripFormModal
+                    open={openModal}
+                    onClose={() => {
+                        setOpenModal(false);
+                        setEditingTrip(null);
+                    }}
+                    vehicles={vehicles}
+                    onSubmit={handleSubmitTrip}
+                    initialTrip={editingTrip}
+                />
+            </main>
+        </div>
     );
 };
 

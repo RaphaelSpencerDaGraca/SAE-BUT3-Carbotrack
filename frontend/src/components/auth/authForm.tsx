@@ -1,84 +1,126 @@
-//frontend\src\components\auth\authForm.tsx
-import React, { useState } from 'react';
-import InputField from '../ui/inputField';
-import Button from '../ui/button';
-import Alert from '../ui/alert';
-import AuthSwitcher from './authSwitcher';
-import { Link } from 'react-router-dom';
+// frontend/src/components/auth/authForm.tsx
+import React, { useState } from "react";
+import InputField from "../ui/inputField";
+import Alert from "../ui/alert";
+import { Link } from "react-router-dom";
 
 interface AuthFormProps {
-    type: 'login' | 'register';
+    type: "login" | "register";
     onSubmit: (email: string, password: string, name?: string) => Promise<void>;
 }
 
+const MailIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+        <path
+            d="M4 6.75A2.75 2.75 0 0 1 6.75 4h10.5A2.75 2.75 0 0 1 20 6.75v10.5A2.75 2.75 0 0 1 17.25 20H6.75A2.75 2.75 0 0 1 4 17.25V6.75Z"
+            stroke="currentColor"
+            strokeWidth="1.5"
+        />
+        <path
+            d="M6.5 7.5 12 12l5.5-4.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        />
+    </svg>
+);
+
+const LockIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+        <path
+            d="M7 10V8a5 5 0 0 1 10 0v2"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+        />
+        <path
+            d="M6.5 10h11A2.5 2.5 0 0 1 20 12.5v6A2.5 2.5 0 0 1 17.5 21h-11A2.5 2.5 0 0 1 4 18.5v-6A2.5 2.5 0 0 1 6.5 10Z"
+            stroke="currentColor"
+            strokeWidth="1.5"
+        />
+    </svg>
+);
+
+const Spinner = () => (
+    <span className="inline-flex items-center gap-2">
+    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+    <span>Connexion…</span>
+  </span>
+);
+
 const AuthForm: React.FC<AuthFormProps> = ({ type, onSubmit }) => {
-    const isRegister = type === 'register';
-    const [formData, setFormData] = useState({ email: '', password: '', pseudo: '' });
-    const [error, setError] = useState<string>('');
+    const isRegister = type === "register";
+    const [formData, setFormData] = useState({ email: "", password: "", pseudo: "" });
+    const [error, setError] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [showPwd, setShowPwd] = useState<boolean>(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        setFormData((p) => ({ ...p, [name]: value }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isLoading) return;
         setIsLoading(true);
-        setError('');
+        setError("");
 
         const email = formData.email.trim();
         const password = formData.password;
         const pseudo = formData.pseudo.trim();
 
         try {
-            if (isRegister && !pseudo) throw new Error('Le pseudo est requis.');
+            if (isRegister && !pseudo) throw new Error("Le pseudo est requis.");
             await onSubmit(email, password, isRegister ? pseudo : undefined);
         } catch (err: any) {
-            setError(err?.message || 'Une erreur est survenue');
+            setError(err?.message || "Une erreur est survenue");
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="w-full max-w-md mx-auto">
-            {/* Logo + titre */}
-            <div className="text-center mb-6">
-                <img src="/logo.png" alt="Carbotrack" className="mx-auto h-14 w-14" />
-                <h1 className="mt-3 text-2xl font-bold text-green-600">Carbotrack</h1>
-                <p className="text-sm text-gray-500">Compteur de CO2 de chaque instant</p>
+        <div>
+            <div className="mb-6">
+                <h2 className="text-3xl font-semibold tracking-tight text-white">
+                    {isRegister ? "Créer un compte" : "Se connecter"}
+                </h2>
+                <p className="mt-2 text-sm text-white/70">
+                    {isRegister
+                        ? "Rejoignez Carbotrack en quelques secondes."
+                        : "Accédez à votre tableau de bord et à vos statistiques."}
+                </p>
             </div>
 
-            <div className="bg-white dark:bg-gray-900 shadow-lg ring-1 ring-black/5 dark:ring-white/10 rounded-2xl p-6">
-                {error && <Alert type="error" message={error} className="mb-4" />}
+            {error && <Alert type="error" message={error} className="mb-4" />}
 
-                <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-                    {isRegister && (
-                        <div>
-                            <label htmlFor="pseudo" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                                Pseudo
-                            </label>
-                            <InputField
-                                id="pseudo"
-                                type="text"
-                                name="pseudo"
-                                value={formData.pseudo}
-                                onChange={handleChange}
-                                placeholder="Votre pseudo"
-                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100"
-                                autoComplete="nickname"
-                                required={isRegister}
-                            />
-                        </div>
-                    )}
-
+            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+                {isRegister && (
                     <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                            Email
+                        <label className="mb-1 block text-sm font-medium text-white/80" htmlFor="pseudo">
+                            Pseudo
                         </label>
+                        <InputField
+                            id="pseudo"
+                            type="text"
+                            name="pseudo"
+                            value={formData.pseudo}
+                            onChange={handleChange}
+                            placeholder="Votre pseudo"
+                            autoComplete="nickname"
+                            required
+                        />
+                    </div>
+                )}
+
+                <div>
+                    <label className="mb-1 block text-sm font-medium text-white/80" htmlFor="email">
+                        Email
+                    </label>
+                    <div className="relative">
+                        <MailIcon className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-white/35" />
                         <InputField
                             id="email"
                             type="email"
@@ -86,81 +128,81 @@ const AuthForm: React.FC<AuthFormProps> = ({ type, onSubmit }) => {
                             value={formData.email}
                             onChange={handleChange}
                             placeholder="your.email@example.com"
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100"
                             autoComplete="email"
                             required
+                            className="pl-11"
                         />
                     </div>
+                </div>
 
-                    <div>
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                            Password
-                        </label>
-                        <div className="relative">
-                            <InputField
-                                id="password"
-                                type={showPwd ? 'text' : 'password'}
-                                name="password"
-                                value={formData.password}
-                                onChange={handleChange}
-                                placeholder="••••••••"
-                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg pr-20 focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100"
-                                autoComplete={isRegister ? 'new-password' : 'current-password'}
-                                required
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPwd(s => !s)}
-                                className="absolute inset-y-0 right-2 my-auto rounded-md px-3 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                aria-label={showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
-                            >
-                                {showPwd ? 'Masquer' : 'Afficher'}
-                            </button>
-                        </div>
-                    </div>
-
-                    <Button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-full transition disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                        {isLoading ? (isRegister ? "Inscription…" : "Connexion…") : (isRegister ? "Sign Up" : "Sign In")}
-                    </Button>
-
-                    {/*
-                    <div className="flex items-center gap-3 my-2">
-                        <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
-                        <span className="text-xs text-gray-500">or continue with</span>
-                        <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
-                    </div>
-
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                        <button type="button" className="rounded-lg border border-gray-300 dark:border-gray-700 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800">
-                            Google
+                <div>
+                    <label className="mb-1 block text-sm font-medium text-white/80" htmlFor="password">
+                        Mot de passe
+                    </label>
+                    <div className="relative">
+                        <LockIcon className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-white/35" />
+                        <InputField
+                            id="password"
+                            type={showPwd ? "text" : "password"}
+                            name="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            placeholder="••••••••"
+                            autoComplete={isRegister ? "new-password" : "current-password"}
+                            required
+                            className="pl-11 pr-20"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPwd((s) => !s)}
+                            className="absolute inset-y-0 right-2 my-auto rounded-lg px-3 text-xs font-medium text-white/60 hover:text-white transition"
+                            aria-label={showPwd ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                        >
+                            {showPwd ? "Masquer" : "Afficher"}
                         </button>
-                        <button type="button" className="rounded-lg border border-gray-300 dark:border-gray-700 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800">
-                            Facebook
-                        </button>
-                    </div>*/}
-
-                    {/* liens */}
-                    <div className="mt-3 text-center">
-                        {!isRegister && (
-                            <Link to="/forgot-password" className="text-sm text-green-600 hover:underline">
-                                Mot de passe oublié ?
-                            </Link>
-                            )}
-                        <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                            {isRegister ? (
-                                <>Vous avez déjà un compte  ? <a href="/login" className="text-green-600 hover:underline">Connectez vous</a></>
-                            ) : (
-                                <>Vous n'avez pas de compte ? <a href="/register" className="text-green-600 hover:underline">Inscrivez vous</a></>
-                            )}
-                        </div>
                     </div>
-                </form>
-            </div>
+                </div>
+
+                <button
+                    type="submit"
+                    disabled={isLoading}
+                    className={[
+                        "w-full rounded-xl py-2.5 text-sm font-semibold text-white",
+                        "bg-gradient-to-r from-green-600 to-emerald-600",
+                        "shadow-[0_10px_30px_-12px_rgba(16,185,129,0.55)]",
+                        "transition hover:brightness-110 active:brightness-95",
+                        "disabled:cursor-not-allowed disabled:opacity-70",
+                    ].join(" ")}
+                >
+                    {isLoading ? <Spinner /> : isRegister ? "Créer mon compte" : "Se connecter"}
+                </button>
+
+                <div className="pt-2 text-center">
+                    {!isRegister && (
+                        <Link to="/forgot-password" className="text-sm font-medium text-green-300 hover:underline">
+                            Mot de passe oublié ?
+                        </Link>
+                    )}
+
+                    <div className="mt-3 text-sm text-white/70">
+                        {isRegister ? (
+                            <>
+                                Vous avez déjà un compte ?{" "}
+                                <Link to="/login" className="font-medium text-green-300 hover:underline">
+                                    Connectez-vous
+                                </Link>
+                            </>
+                        ) : (
+                            <>
+                                Vous n’avez pas de compte ?{" "}
+                                <Link to="/register" className="font-medium text-green-300 hover:underline">
+                                    Inscrivez-vous
+                                </Link>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </form>
         </div>
     );
 };
