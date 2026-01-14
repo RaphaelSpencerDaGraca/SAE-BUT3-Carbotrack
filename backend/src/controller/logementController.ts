@@ -1,5 +1,13 @@
 import { Request, Response } from 'express';
-import { getLogementById, getLogementsByUserId, createLogement, updateLogement, deleteLogement, getAllLogements} from '../models/logement';
+import { 
+  getLogementById, 
+  getLogementsByUserId, 
+  createLogement, 
+  updateLogement, 
+  deleteLogement, 
+  getAllLogements,
+  deleteLogementById // Ajout import
+} from '../models/logement';
 import { logement as LogementType } from '../../../shared/logement';
 import { validationResult } from 'express-validator';
 
@@ -63,6 +71,20 @@ export const deleteLogementController = async (req: Request, res: Response) => {
     return res.status(204).send();
   } catch (err) {
     console.error('deleteLogement error', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// --- NOUVEAU CONTROLEUR ---
+export const deleteLogementByIdController = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid id' });
+    
+    await deleteLogementById(id);
+    return res.status(204).send();
+  } catch (err) {
+    console.error('deleteLogementById error', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 };

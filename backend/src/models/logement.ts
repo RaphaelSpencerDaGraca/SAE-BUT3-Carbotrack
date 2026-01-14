@@ -59,6 +59,13 @@ export const deleteLogement = async (userId: string) => {
   return rows[0];
 };
 
+// --- NOUVELLE FONCTION ---
+export const deleteLogementById = async (id: number) => {
+  const query = `DELETE FROM logement WHERE id = $1 RETURNING *`;
+  const { rows } = await pool.query(query, [id]);
+  return rows[0];
+};
+
 export const getAllLogements = async () => {
   const query = `SELECT * FROM logement`;
   const { rows } = await pool.query(query);
