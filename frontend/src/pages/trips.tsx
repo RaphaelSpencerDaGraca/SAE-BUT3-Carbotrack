@@ -5,6 +5,9 @@ import type { Vehicle } from '../../../shared/vehicle.type.ts';
 import { useTranslation } from "@/language/useTranslation.ts";
 import TripFormModal from "@/components/trips/TripFormModal";
 import { getVehicles } from "@/services/vehicleService";
+import { deleteTrip } from "@/services/tripService";
+import { updateTrip } from "@/services/tripService";
+
 
 type CreateTripPayload = {
     date: string;
@@ -22,8 +25,9 @@ const TripsPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [openModal, setOpenModal] = useState(false);
+    const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
 
-    const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3001/api';
+    const API_BASE = import.meta.env.VITE_API_URL ?? '/api';
 
     const getToken = () => localStorage.getItem('token');
 
@@ -47,7 +51,6 @@ const TripsPage = () => {
     };
 
     const fetchVehicles = async () => {
-        // ton vehicleService est déjà branché (et normalement déjà token-aware si tu utilises api.js)
         const v = await getVehicles();
         setVehicles(v);
     };
@@ -95,6 +98,40 @@ const TripsPage = () => {
         setOpenModal(false);
     };
 
+    const handleSubmitTrip = async (payload: CreateTripPayload) => {
+        try {
+            if (editingTrip) {
+                // MODE EDIT
+                await updateTrip(editingTrip.id, payload);
+
+                // ✅ C'EST ICI que tu mets ça :
+                await fetchTrips();
+                setEditingTrip(null);
+                setOpenModal(false);
+            } else {
+                // MODE CREATE
+                await handleCreateTrip(payload);
+            }
+        } catch (e) {
+            console.error("Erreur submit trip:", e);
+            throw e;
+        }
+    };
+
+    async function handleDeleteTrip(id: Trip["id"]) {
+        const ok = window.confirm("Supprimer ce trajet ?");
+        if (!ok) return;
+
+        try {
+            await deleteTrip(id);
+            setTrips((prev) => prev.filter((t) => t.id !== id));
+        } catch (err) {
+            console.error("Erreur suppression trajet:", err);
+            alert("Erreur lors de la suppression du trajet.");
+        }
+    }
+
+
     return (
         <main className="min-h-screen bg-slate-950 text-slate-50 px-4 pb-24 pt-6">
             <div className="mx-auto max-w-5xl space-y-6">
@@ -122,9 +159,9 @@ const TripsPage = () => {
 
                 <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
                     <div className="flex flex-wrap items-center gap-3">
-            <span className="text-xs font-medium text-slate-400">
-              {t("trips.filters.label")}
-            </span>
+                        <span className="text-xs font-medium text-slate-400">
+                            {t("trips.filters.label")}
+                        </span>
 
                         <button className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs text-slate-200 hover:border-emerald-400 hover:text-emerald-200">
                             {t("trips.filters.last7Days")}
@@ -138,7 +175,6 @@ const TripsPage = () => {
                     </div>
                 </section>
 
-                {/* Liste des trajets */}
                 <section className="rounded-2xl border border-slate-800 bg-slate-900/40">
                     <div className="border-b border-slate-800 px-4 py-3 flex items-center justify-between">
                         <h2 className="text-sm font-medium text-slate-100">
@@ -151,12 +187,11 @@ const TripsPage = () => {
                             <span className="text-xs text-red-400">Erreur</span>
                         ) : (
                             <span className="text-xs text-slate-500">
-                {trips.length} {t("trips.list.countSuffix")}
-              </span>
+                                {trips.length} {t("trips.list.countSuffix")}
+                            </span>
                         )}
                     </div>
 
-                    {/* États : chargement / erreur / vide / liste */}
                     {loading ? (
                         <div className="px-4 py-10 text-center text-sm text-slate-400">
                             Chargement des trajets...
@@ -185,8 +220,8 @@ const TripsPage = () => {
                                         </p>
                                         {trip.tag && (
                                             <span className="inline-flex rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-300">
-                        {trip.tag}
-                      </span>
+                                                {trip.tag}
+                                            </span>
                                         )}
                                     </div>
 
@@ -201,10 +236,21 @@ const TripsPage = () => {
                                         </div>
 
                                         <div className="flex items-center gap-2">
-                                            <button className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-[11px] text-slate-200 hover:border-slate-500">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setEditingTrip(trip);
+                                                    setOpenModal(true);
+                                                }}
+                                                className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-[11px] text-slate-200 hover:border-slate-500"
+                                            >
                                                 {t("trips.actions.edit")}
                                             </button>
-                                            <button className="rounded-full border border-red-500/60 bg-red-500/10 px-3 py-1 text-[11px] text-red-200 hover:bg-red-500/20">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteTrip(trip.id)}
+                                                className="rounded-full border border-red-500/60 bg-red-500/10 px-3 py-1 text-[11px] text-red-200 hover:bg-red-500/20"
+                                            >
                                                 {t("trips.actions.delete")}
                                             </button>
                                         </div>
@@ -218,9 +264,13 @@ const TripsPage = () => {
 
             <TripFormModal
                 open={openModal}
-                onClose={() => setOpenModal(false)}
+                onClose={() => {
+                    setOpenModal(false);
+                    setEditingTrip(null);
+                }}
                 vehicles={vehicles}
-                onSubmit={handleCreateTrip}
+                onSubmit={handleSubmitTrip}
+                initialTrip={editingTrip}
             />
         </main>
     );

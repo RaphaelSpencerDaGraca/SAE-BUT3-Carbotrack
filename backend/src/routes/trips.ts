@@ -3,7 +3,8 @@ import { Router } from 'express';
 import { authenticate } from '../middlewares/auth';
 import { calculateTripEmissionsKgCO2 } from '../services/co2Calculator';
 import { getOwnedVehicleForTrip } from '../models/vehicles';
-import { insertTrip, listTripsByUser } from '../models/trips';
+import { insertTrip, listTripsByUser, deleteTripByUser } from '../models/trips';
+import { updateTripByUser } from "../models/trips";
 
 const router = Router();
 
@@ -77,5 +78,88 @@ router.post('/', authenticate, async (req: any, res) => {
         return res.status(500).json({ error: 'Erreur serveur' });
     }
 });
+
+router.delete("/:id", authenticate, async (req: any, res) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) return res.status(401).json({ error: "Utilisateur non authentifié." });
+
+        const tripId = Number(req.params.id);
+        if (Number.isNaN(tripId)) {
+            return res.status(400).json({ error: "id invalide" });
+        }
+
+        const deleted = await deleteTripByUser(userId, tripId);
+        if (!deleted) return res.status(404).json({ error: "Trajet introuvable." });
+
+        return res.status(204).send();
+    } catch (e) {
+        console.error("Erreur DELETE /api/trips/:id:", e);
+        return res.status(500).json({ error: "Erreur serveur" });
+    }
+});
+
+router.patch("/:id", authenticate, async (req: any, res) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) return res.status(401).json({ error: "Utilisateur non authentifié." });
+
+        const tripId = Number(req.params.id);
+        if (Number.isNaN(tripId)) return res.status(400).json({ error: "id invalide" });
+
+        const { date, fromCity, toCity, distanceKm, vehicleId, tag } = req.body ?? {};
+
+        // on récupère la trip existante pour recalculer le CO2 correctement
+        const trips = await listTripsByUser(userId);
+        const current = (trips as any[]).find((t) => Number(t.id) === tripId);
+        if (!current) return res.status(404).json({ error: "Trajet introuvable." });
+
+        const patch: any = {};
+
+        if (date !== undefined) patch.date = date;
+        if (fromCity !== undefined) patch.fromCity = String(fromCity);
+        if (toCity !== undefined) patch.toCity = String(toCity);
+
+        if (distanceKm !== undefined) {
+            const dist = Number(distanceKm);
+            if (Number.isNaN(dist) || dist <= 0) return res.status(400).json({ error: "distanceKm invalide" });
+            patch.distanceKm = dist;
+        }
+
+        if (vehicleId !== undefined) {
+            const vehicleIdNum = Number(vehicleId);
+            if (Number.isNaN(vehicleIdNum)) return res.status(400).json({ error: "vehicleId invalide" });
+            patch.vehicleId = vehicleIdNum;
+        }
+
+        if (tag !== undefined) patch.tag = tag ? String(tag) : null;
+
+        // recalcul CO2 avec (vehicleId + distanceKm) finaux
+        const finalVehicleId = patch.vehicleId ?? current.vehicleId;
+        const finalDistanceKm = patch.distanceKm ?? current.distanceKm;
+
+        const vehicle = await getOwnedVehicleForTrip(userId, Number(finalVehicleId));
+        if (!vehicle) return res.status(403).json({ error: "Ce véhicule ne t'appartient pas (ou n'existe pas)." });
+
+        patch.co2Kg =
+            calculateTripEmissionsKgCO2(
+                { fuelType: vehicle.fuelType, consumptionLPer100: vehicle.consumptionLPer100 ?? null },
+                Number(finalDistanceKm)
+            ) ?? 0;
+
+        const updated = await updateTripByUser(userId, tripId, patch);
+        if (!updated) return res.status(404).json({ error: "Trajet introuvable." });
+
+        // Optionnel mais utile pour l'UI: renvoyer vehicleName
+        return res.json({
+            ...updated,
+            vehicleName: vehicle.name,
+        });
+    } catch (e) {
+        console.error("Erreur PATCH /api/trips/:id:", e);
+        return res.status(500).json({ error: "Erreur serveur" });
+    }
+});
+
 
 export default router;

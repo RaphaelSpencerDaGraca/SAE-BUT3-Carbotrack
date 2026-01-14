@@ -46,6 +46,9 @@ RUN ln -s /app/backend/node_modules /app/node_modules
 # JS compilé (inclut dist/backend/... + dist/shared/...)
 COPY --from=build /app/backend/dist ./dist
 
+# on copie les assets (xlsx) sur /app/assets
+COPY --from=build /app/backend/assets ./assets
+
 EXPOSE 3001
 
 # On démarre le serveur compilé (chemin issu de tsconfig.docker.json)

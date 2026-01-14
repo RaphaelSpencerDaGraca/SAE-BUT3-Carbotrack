@@ -9,6 +9,7 @@ frontend/dist/
 
 # Env & logs
 .env
+.env.local
 
 npm-debug.log*
 yarn-debug.log*
