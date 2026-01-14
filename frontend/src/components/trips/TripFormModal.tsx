@@ -218,9 +218,9 @@ export default function TripFormModal({
 
             {/* modal wrapper (center) */}
             <div className="relative mx-auto mt-20 w-[92%] max-w-xl">
-                {/* modal */}
-                <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 text-white shadow-[0_30px_90px_-30px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-                    
+                {/* modal: AJOUT de max-h-[85vh] et overflow-y-auto */}
+                <div className="max-h-[85vh] overflow-y-auto rounded-2xl border border-white/10 bg-white/[0.06] p-5 text-white shadow-[0_30px_90px_-30px_rgba(0,0,0,0.8)] backdrop-blur-xl">
+
                     {/* Header */}
                     <div className="flex items-start justify-between gap-3">
                         <div>
