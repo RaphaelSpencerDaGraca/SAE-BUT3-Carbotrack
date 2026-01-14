@@ -268,7 +268,7 @@ const Dashboard = () => {
                     </section>
 
                     {/* Content */}
-                    <section className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1.1fr)]">
+                    <section className="grid gap-4 grid-cols-1-[minmax(0,2fr)_minmax(0,1.1fr)]">
                         <GlassCard>
                             <div className="flex items-center justify-between gap-2">
                                 <h2 className="text-sm font-medium text-white/90">
@@ -311,24 +311,7 @@ const Dashboard = () => {
                             </ul>
                         </GlassCard>
 
-                        <GlassCard>
-                            <h2 className="text-sm font-medium text-white/90">
-                                {t("dashboard.nextSteps.title")}
-                            </h2>
-
-                            <ol className="mt-3 space-y-2 list-decimal list-inside text-sm text-white/70">
-                                <li className="leading-relaxed">{t("dashboard.nextSteps.step1")}</li>
-                                <li className="leading-relaxed">{t("dashboard.nextSteps.step2")}</li>
-                                <li className="leading-relaxed">{t("dashboard.nextSteps.step3")}</li>
-                            </ol>
-
-                            <div className="mt-5 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-                                <p className="text-xs text-white/55">Astuce</p>
-                                <p className="mt-1 text-sm text-white/75">
-                                    Ajoute un véhicule puis enregistre 1 trajet : tu verras tes stats se remplir direct.
-                                </p>
-                            </div>
-                        </GlassCard>
+                        
                     </section>
                 </div>
             </main>
