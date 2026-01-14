@@ -45,8 +45,7 @@ const TripsPage = () => {
     const [openModal, setOpenModal] = useState(false);
     const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
 
-    // UI-only state (filters) — ne change rien à ta logique actuelle
-    const [activeFilter, setActiveFilter] = useState<"last7" | "month" | "all">("all");
+   
 
     const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
     const getToken = () => localStorage.getItem("token");
@@ -202,40 +201,7 @@ const TripsPage = () => {
                         </button>
                     </header>
 
-                    {/* Filters */}
-                    <GlassCard className="p-4">
-                        <div className="flex flex-wrap items-center gap-3">
-              <span className="text-xs font-medium text-white/55">
-                {t("trips.filters.label")}
-              </span>
-
-                            <button
-                                type="button"
-                                className={filterBtnClass(activeFilter === "last7")}
-                                onClick={() => setActiveFilter("last7")}
-                            >
-                                {t("trips.filters.last7Days")}
-                            </button>
-
-                            <button
-                                type="button"
-                                className={filterBtnClass(activeFilter === "month")}
-                                onClick={() => setActiveFilter("month")}
-                            >
-                                {t("trips.filters.thisMonth")}
-                            </button>
-
-                            <button
-                                type="button"
-                                className={filterBtnClass(activeFilter === "all")}
-                                onClick={() => setActiveFilter("all")}
-                            >
-                                {t("trips.filters.all")}
-                            </button>
-
-                            <span className="ml-auto text-xs text-white/45">{countText}</span>
-                        </div>
-                    </GlassCard>
+                    
 
                     {/* List */}
                     <GlassCard>
