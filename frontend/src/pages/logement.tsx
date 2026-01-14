@@ -146,6 +146,7 @@ const LogementsPage = () => {
         error: apiError,
         saveLogement,
         fetchLogements,
+        removeLogement,
     } = useLogement();
 
     const { typesChauffage } = useTypesChauffage();
@@ -238,6 +239,23 @@ const LogementsPage = () => {
             });
         } catch (err) {
             console.error("Erreur création", err);
+        }
+    };
+
+    const handleDeleteLogement = async (id: number, e: React.MouseEvent) => {
+        // e.stopPropagation() n'est plus nécessaire ici car les boutons sont frères,
+        // mais on le garde par sécurité si le layout change.
+        e.stopPropagation(); 
+        
+        if (confirm("Êtes-vous sûr de vouloir supprimer ce logement et tous ses appareils ?")) {
+            try {
+                await removeLogement(id);
+                if (expandedLogementId === id) {
+                    setExpandedLogementId(null);
+                }
+            } catch (err) {
+                console.error("Erreur suppression", err);
+            }
         }
     };
 
@@ -441,38 +459,57 @@ const LogementsPage = () => {
 
                                 return (
                                     <GlassCard key={logement.id} className="overflow-hidden">
-                                        <button
-                                            type="button"
-                                            onClick={() => toggleLogement(logement.id)}
-                                            className="w-full p-5 text-left transition hover:bg-white/[0.03]"
-                                        >
-                                            <div className="flex items-center justify-between gap-4">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white/70">
-                                                        🏠
-                                                    </div>
-
-                                                    <div>
-                                                        <div className="flex flex-wrap items-center gap-2">
-                                                            <h3 className="text-sm font-semibold text-white/90">
-                                                                Logement {logement.superficie}m² · {logement.nombre_pieces} pièces
-                                                            </h3>
-                                                            <Pill>Isolation {logement.classe_isolation}</Pill>
+                                        {/* CORRECTION LAYOUT:
+                                            On utilise flex items-center pour aligner le contenu.
+                                            Le bouton principal prend flex-1 (tout l'espace dispo).
+                                            Le bouton supprimer est juste à côté, dans le flux normal (pas d'absolute).
+                                        */}
+                                        <div className="flex items-center gap-2 p-2 pr-4 transition hover:bg-white/[0.03]">
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleLogement(logement.id)}
+                                                className="flex-1 text-left p-3"
+                                            >
+                                                <div className="flex items-center justify-between gap-4">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white/70">
+                                                            🏠
                                                         </div>
 
-                                                        <p className="mt-1 text-xs text-white/55">
-                                                            {typeof logement.emission_co2_annuelle === "number"
-                                                                ? `${logement.emission_co2_annuelle.toFixed(0)} kgCO₂/an`
-                                                                : "Émissions : —"}
-                                                        </p>
+                                                        <div>
+                                                            <div className="flex flex-wrap items-center gap-2">
+                                                                <h3 className="text-sm font-semibold text-white/90">
+                                                                    Logement {logement.superficie}m² · {logement.nombre_pieces} pièces
+                                                                </h3>
+                                                                <Pill>Isolation {logement.classe_isolation}</Pill>
+                                                            </div>
+
+                                                            <p className="mt-1 text-xs text-white/55">
+                                                                {typeof logement.emission_co2_annuelle === "number"
+                                                                    ? `${logement.emission_co2_annuelle.toFixed(0)} kgCO₂/an`
+                                                                    : "Émissions : —"}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="text-xs font-semibold text-white/60">
+                                                        {opened ? "Masquer ▲" : "Voir appareils ▼"}
                                                     </div>
                                                 </div>
+                                            </button>
 
-                                                <div className="text-xs font-semibold text-white/60">
-                                                    {opened ? "Masquer ▲" : "Voir appareils ▼"}
-                                                </div>
-                                            </div>
-                                        </button>
+                                            {/* Séparateur visuel optionnel */}
+                                            <div className="h-8 w-px bg-white/10" />
+
+                                            {/* Bouton Supprimer positionné via Flexbox */}
+                                            <button
+                                                onClick={(e) => handleDeleteLogement(logement.id, e)}
+                                                className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 text-red-200 transition hover:bg-red-500/20"
+                                                title="Supprimer le logement"
+                                            >
+                                                ❌
+                                            </button>
+                                        </div>
 
                                         {opened && (
                                             <div className="border-t border-white/10 bg-black/10 p-5">

@@ -39,6 +39,22 @@ export const useLogement = () => {
     }
   };
 
+  // --- NOUVELLE FONCTION ---
+  const removeLogement = async (id: number) => {
+    setLoading(true);
+    try {
+      await api.delete(`/logements/${id}`);
+      // Mise à jour optimiste de la liste locale
+      setLogements((prev) => prev.filter((l) => l.id !== id));
+      setLoading(false);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erreur suppression';
+      setError(message);
+      setLoading(false);
+      throw err;
+    }
+  };
+
   const fetchLogements = useCallback(async (userId: string) => {
     setLoading(true);
     setError(null);
@@ -74,9 +90,10 @@ export const useLogement = () => {
   };
 
   return { 
-    logements,        // C'est ça qui manquait !
-    fetchLogements,   // C'est ça qui manquait !
+    logements,        
+    fetchLogements,   
     saveLogement, 
+    removeLogement, // Export de la fonction
     getLogement, 
     loading, 
     error 
