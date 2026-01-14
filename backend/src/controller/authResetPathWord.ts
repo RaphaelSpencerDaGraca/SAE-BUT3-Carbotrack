@@ -1,8 +1,31 @@
 // backend/src/controller/passwordResetController.ts
 import { Request, Response } from 'express';
-import { createPasswordResetToken, getPasswordResetToken, deletePasswordResetToken } from '../models/passwordReset';
+import {
+    createPasswordResetToken,
+    getPasswordResetToken,
+    deletePasswordResetToken,
+} from '../models/passwordReset';
 import { getUserByEmail, updateUserPassword } from '../models/user';
 import { sendPasswordResetEmail } from '../services/emailService';
+
+function normalizeBaseUrl(url: string): string {
+    // enlève les espaces + slash final
+    const trimmed = url.trim();
+    return trimmed.endsWith('/') ? trimmed.slice(0, -1) : trimmed;
+}
+
+function getFrontendBaseUrl(req: Request): string {
+    // 1) priorité: variable injectée via docker compose /.env
+    const fromEnv = process.env.FRONTEND_URL;
+    if (fromEnv && fromEnv.trim()) return normalizeBaseUrl(fromEnv);
+
+    // 2) fallback dev: Origin si présent
+    const origin = req.get('origin');
+    if (origin && origin.trim()) return normalizeBaseUrl(origin);
+
+    // 3) fallback ultime
+    return 'http://localhost:5173';
+}
 
 export const requestPasswordReset = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -21,7 +44,9 @@ export const requestPasswordReset = async (req: Request, res: Response): Promise
         }
 
         const token = await createPasswordResetToken(user.id);
-        const resetLink = `http://localhost:5173/reset-password?token=${token.token}`;
+
+        const baseUrl = getFrontendBaseUrl(req);
+        const resetLink = `${baseUrl}/reset-password?token=${encodeURIComponent(token.token)}`;
 
         await sendPasswordResetEmail(user.email, resetLink);
 
