@@ -71,10 +71,10 @@ const ProfilePage = () => {
         try {
             const userId = (user as any).id || (user as any).user_id;
             await updateUserProfileInfo(userId, { pseudo, genre });
-            setMessage({ type: "success", text: "Profil mis à jour avec succès !" });
+            setMessage({ type: "success", text: t("profile.success.update") });
             setIsEditingProfile(false);
         } catch (err) {
-            setMessage({ type: "error", text: "Erreur lors de la mise à jour." });
+            setMessage({ type: "error", text: t("profile.error.update") });
         }
     };
 
@@ -82,13 +82,13 @@ const ProfilePage = () => {
         e.preventDefault();
         try {
             await changePassword(passwords.current, passwords.new);
-            setMessage({ type: "success", text: "Mot de passe modifié !" });
+            setMessage({ type: "success", text: t("profile.success.password") });
             setShowPasswordForm(false);
             setPasswords({ current: "", new: "" });
         } catch (err: any) {
             setMessage({
                 type: "error",
-                text: err.response?.data?.error || "Erreur mot de passe.",
+                text: err.response?.data?.error || t("common.error"),
             });
         }
     };
@@ -100,7 +100,7 @@ const ProfilePage = () => {
         } catch (err: any) {
             setMessage({
                 type: "error",
-                text: err.response?.data?.error || "Impossible de supprimer le compte.",
+                text: err.response?.data?.error || t("profile.error.delete"),
             });
         }
     };
@@ -134,7 +134,7 @@ const ProfilePage = () => {
                                 {t("profile.greeting")}, {greetingName} 👋
                             </h1>
                             <p className="mt-2 text-sm text-white/65">
-                                {t("profile.subtitle") ?? "Gérez vos informations et la sécurité de votre compte."}
+                                {t("profile.subtitle")}
                             </p>
                         </div>
 
@@ -176,7 +176,7 @@ const ProfilePage = () => {
                                             {t("profile.account.title")}
                                         </h2>
                                         <p className="mt-1 text-xs text-white/55">
-                                            Infos visibles dans l’application.
+                                            {t("profile.account.subtitle")}
                                         </p>
                                     </div>
 
@@ -185,7 +185,7 @@ const ProfilePage = () => {
                                             onClick={() => setIsEditingProfile(true)}
                                             className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
                                         >
-                                            Modifier
+                                            {t("common.edit")}
                                         </button>
                                     )}
                                 </div>
@@ -194,21 +194,21 @@ const ProfilePage = () => {
                                     <div className="mt-5 space-y-4 text-sm">
                                         <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
                                             <p className="text-xs font-medium uppercase tracking-wide text-white/45">
-                                                Pseudo
+                                                {t("profile.pseudo")}
                                             </p>
-                                            <p className="mt-1 text-white/90">{pseudo || "Non défini"}</p>
+                                            <p className="mt-1 text-white/90">{pseudo || t("profile.undefined")}</p>
                                         </div>
 
                                         <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
                                             <p className="text-xs font-medium uppercase tracking-wide text-white/45">
-                                                Genre
+                                                {t("profile.gender")}
                                             </p>
-                                            <p className="mt-1 text-white/90">{genre || "Non défini"}</p>
+                                            <p className="mt-1 text-white/90">{genre || t("profile.undefined")}</p>
                                         </div>
 
                                         <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
                                             <p className="text-xs font-medium uppercase tracking-wide text-white/45">
-                                                Email
+                                                {t("profile.account.email")}
                                             </p>
                                             <p className="mt-1 text-white/70">{email || "—"}</p>
                                         </div>
@@ -216,7 +216,7 @@ const ProfilePage = () => {
                                 ) : (
                                     <form onSubmit={handleUpdateProfile} className="mt-5 space-y-4">
                                         <div>
-                                            <label className={labelClass}>Pseudo</label>
+                                            <label className={labelClass}>{t("profile.pseudo")}</label>
                                             <input
                                                 type="text"
                                                 value={pseudo}
@@ -226,20 +226,20 @@ const ProfilePage = () => {
                                         </div>
 
                                         <div>
-                                            <label className={labelClass}>Genre</label>
+                                            <label className={labelClass}>{t("profile.gender")}</label>
                                             <select
                                                 value={genre}
                                                 onChange={(e) => setGenre(e.target.value)}
                                                 className={inputClass}
                                             >
                                                 <option className="bg-gray-950" value="Autre">
-                                                    Autre / Non précisé
+                                                    {t("profile.gender.other")}
                                                 </option>
                                                 <option className="bg-gray-950" value="Homme">
-                                                    Homme
+                                                    {t("profile.gender.male")}
                                                 </option>
                                                 <option className="bg-gray-950" value="Femme">
-                                                    Femme
+                                                    {t("profile.gender.female")}
                                                 </option>
                                             </select>
                                         </div>
@@ -250,14 +250,14 @@ const ProfilePage = () => {
                                                 onClick={() => setIsEditingProfile(false)}
                                                 className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
                                             >
-                                                Annuler
+                                                {t("common.cancel")}
                                             </button>
 
                                             <button
                                                 type="submit"
                                                 className="rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_30px_-12px_rgba(16,185,129,0.55)] transition hover:brightness-110"
                                             >
-                                                Enregistrer
+                                                {t("common.save")}
                                             </button>
                                         </div>
                                     </form>
@@ -274,7 +274,7 @@ const ProfilePage = () => {
                                             {t("profile.security.title")}
                                         </h2>
                                         <p className="mt-1 text-xs text-white/55">
-                                            Mot de passe et actions sensibles.
+                                            {t("profile.security.subtitle")}
                                         </p>
                                     </div>
 
@@ -291,7 +291,7 @@ const ProfilePage = () => {
                                 {showPasswordForm && (
                                     <form onSubmit={handleChangePassword} className="mt-5 space-y-3">
                                         <div>
-                                            <label className={labelClass}>Mot de passe actuel</label>
+                                            <label className={labelClass}>{t("profile.security.currentPassword")}</label>
                                             <input
                                                 type="password"
                                                 placeholder="••••••••"
@@ -303,7 +303,7 @@ const ProfilePage = () => {
                                         </div>
 
                                         <div>
-                                            <label className={labelClass}>Nouveau mot de passe</label>
+                                            <label className={labelClass}>{t("profile.security.newPassword")}</label>
                                             <input
                                                 type="password"
                                                 placeholder="••••••••"
@@ -320,24 +320,24 @@ const ProfilePage = () => {
                                                 onClick={() => setShowPasswordForm(false)}
                                                 className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
                                             >
-                                                Annuler
+                                                {t("common.cancel")}
                                             </button>
 
                                             <button
                                                 type="submit"
                                                 className="rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_30px_-12px_rgba(16,185,129,0.55)] transition hover:brightness-110"
                                             >
-                                                Valider
+                                                {t("common.validate")}
                                             </button>
                                         </div>
                                     </form>
                                 )}
                             </GlassCard>
 
-                            {/* Danger Zone (texte comme avant) */}
+                            {/* Danger Zone */}
                             <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-5 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.65)]">
                                 <h2 className="text-sm font-medium text-red-200 mb-2">
-                                    Vous voulez vraiment partir ?
+                                    {t("profile.delete.title")}
                                 </h2>
 
                                 {!showDeleteConfirm ? (
@@ -345,17 +345,17 @@ const ProfilePage = () => {
                                         onClick={() => setShowDeleteConfirm(true)}
                                         className="text-xs font-semibold text-red-200/80 underline decoration-red-300/40 underline-offset-4 hover:text-red-100"
                                     >
-                                        Supprimer mon compte
+                                        {t("profile.delete.button")}
                                     </button>
                                 ) : (
                                     <div className="space-y-3">
                                         <p className="text-xs text-red-200/80">
-                                            Cette action est irréversible. Entrez votre mot de passe pour confirmer.
+                                            {t("profile.delete.warning")}
                                         </p>
 
                                         <input
                                             type="password"
-                                            placeholder="Votre mot de passe"
+                                            placeholder={t("profile.delete.passwordPlaceholder")}
                                             value={deletePassword}
                                             onChange={(e) => setDeletePassword(e.target.value)}
                                             className="w-full rounded-xl border border-red-500/20 bg-black/20 px-4 py-2.5 text-sm text-red-100 placeholder:text-red-200/40 outline-none transition focus:ring-2 focus:ring-red-400/20"
@@ -367,7 +367,7 @@ const ProfilePage = () => {
                                                 onClick={handleDeleteAccount}
                                                 className="w-full rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500"
                                             >
-                                                Confirmer suppression
+                                                {t("profile.delete.confirm")}
                                             </button>
 
                                             <button
@@ -375,7 +375,7 @@ const ProfilePage = () => {
                                                 onClick={() => setShowDeleteConfirm(false)}
                                                 className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
                                             >
-                                                Annuler
+                                                {t("common.cancel")}
                                             </button>
                                         </div>
                                     </div>

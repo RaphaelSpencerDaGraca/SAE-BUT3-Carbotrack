@@ -28,6 +28,33 @@ const getCurrentUserId = (): string | null => {
     return null;
 };
 
+// --- ICONES SVG ---
+const IconHouse = ({ className }: { className?: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+    </svg>
+);
+
+const IconTrash = ({ className }: { className?: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <polyline points="3 6 5 6 21 6"></polyline>
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+    </svg>
+);
+
+const IconChevronDown = ({ className }: { className?: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M6 9l6 6 6-6"/>
+    </svg>
+);
+
+const IconChevronUp = ({ className }: { className?: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M18 15l-6-6-6 6"/>
+    </svg>
+);
+
 const GlassCard = ({
                        children,
                        className = "",
@@ -104,9 +131,11 @@ const GhostButton = (props: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
 const AppareilRow = ({
                          appareil,
                          onDelete,
+                         t
                      }: {
     appareil: IElectromenager;
     onDelete: (id: number) => void;
+    t: (key: string) => string;
 }) => {
     return (
         <div className="flex flex-col gap-2 py-3 md:flex-row md:items-center md:justify-between">
@@ -129,9 +158,9 @@ const AppareilRow = ({
                 type="button"
                 onClick={() => appareil.id && onDelete(appareil.id)}
                 className="inline-flex items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200 transition hover:bg-red-500/15"
-                title="Supprimer"
+                title={t("common.delete")}
             >
-                Supprimer
+                {t("common.delete")}
             </button>
         </div>
     );
@@ -243,11 +272,8 @@ const LogementsPage = () => {
     };
 
     const handleDeleteLogement = async (id: number, e: React.MouseEvent) => {
-        // e.stopPropagation() n'est plus nécessaire ici car les boutons sont frères,
-        // mais on le garde par sécurité si le layout change.
-        e.stopPropagation(); 
-        
-        if (confirm("Êtes-vous sûr de vouloir supprimer ce logement et tous ses appareils ?")) {
+        e.stopPropagation();
+        if (confirm(t("housing.delete.confirm"))) {
             try {
                 await removeLogement(id);
                 if (expandedLogementId === id) {
@@ -288,7 +314,7 @@ const LogementsPage = () => {
     };
 
     const handleDeleteAppareil = async (logementId: number, appareilId: number) => {
-        if (!confirm("Supprimer cet appareil ?")) return;
+        if (!confirm(t("housing.appliances.delete.confirm"))) return;
         try {
             await deleteAppareil(appareilId);
             setAppareilsMap((prev) => ({
@@ -323,13 +349,13 @@ const LogementsPage = () => {
                     <header className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                         <div>
                             <p className="text-xs font-medium uppercase tracking-wide text-white/45">
-                                {t("housing.title") ?? "Habitation"}
+                                {t("housing.title")}
                             </p>
                             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">
-                                {t("housing.header") ?? "Mes Logements & Équipements"}
+                                {t("housing.header")}
                             </h1>
                             <p className="mt-2 text-sm text-white/65">
-                                {t("housing.subtitle") ?? "Gérez vos logements et ajoutez vos appareils électroménagers."}
+                                {t("housing.subtitle")}
                             </p>
                         </div>
 
@@ -341,13 +367,13 @@ const LogementsPage = () => {
                             }}
                             className="px-4 py-2"
                         >
-                            {isCreatingLogement ? "Annuler" : "+ Ajouter un logement"}
+                            {isCreatingLogement ? t("common.cancel") : t("housing.addHousing")}
                         </SecondaryButton>
                     </header>
 
                     {apiError && (
                         <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                            Erreur serveur : {apiError}
+                            {t("housing.serverError")} {apiError}
                         </div>
                     )}
 
@@ -356,8 +382,8 @@ const LogementsPage = () => {
                         <GlassCard className="p-5">
                             <div className="flex items-start justify-between gap-3">
                                 <div>
-                                    <h2 className="text-sm font-semibold text-white/90">Nouveau logement</h2>
-                                    <p className="mt-1 text-xs text-white/55">Renseignez les informations principales.</p>
+                                    <h2 className="text-sm font-semibold text-white/90">{t("housing.newHousing.title")}</h2>
+                                    <p className="mt-1 text-xs text-white/55">{t("housing.newHousing.subtitle")}</p>
                                 </div>
                             </div>
 
@@ -370,7 +396,7 @@ const LogementsPage = () => {
                             <form onSubmit={handleCreateLogement} className="mt-5 grid gap-4 md:grid-cols-2">
                                 <div>
                                     <label className={labelClass}>
-                                        Type de chauffage <span className="text-red-300">*</span>
+                                        {t("housing.form.heatingType")} <span className="text-red-300">*</span>
                                     </label>
                                     <select
                                         className={selectClass}
@@ -380,7 +406,7 @@ const LogementsPage = () => {
                                         }
                                     >
                                         <option className="bg-gray-950" value={0}>
-                                            -- Sélectionner --
+                                            {t("housing.form.select")}
                                         </option>
                                         {typesChauffage.map((tc) => (
                                             <option className="bg-gray-950" key={tc.id} value={tc.id}>
@@ -391,7 +417,7 @@ const LogementsPage = () => {
                                 </div>
 
                                 <div>
-                                    <label className={labelClass}>Isolation (DPE)</label>
+                                    <label className={labelClass}>{t("housing.form.isolation")}</label>
                                     <select
                                         className={selectClass}
                                         value={formLogement.classe_isolation}
@@ -406,7 +432,7 @@ const LogementsPage = () => {
                                 </div>
 
                                 <div>
-                                    <label className={labelClass}>Superficie (m²)</label>
+                                    <label className={labelClass}>{t("housing.form.area")}</label>
                                     <input
                                         type="number"
                                         className={inputClass}
@@ -416,7 +442,7 @@ const LogementsPage = () => {
                                 </div>
 
                                 <div>
-                                    <label className={labelClass}>Nombre de pièces</label>
+                                    <label className={labelClass}>{t("housing.form.rooms")}</label>
                                     <input
                                         type="number"
                                         className={inputClass}
@@ -433,10 +459,10 @@ const LogementsPage = () => {
                                             setFormError(null);
                                         }}
                                     >
-                                        Annuler
+                                        {t("common.cancel")}
                                     </SecondaryButton>
 
-                                    <PrimaryButton type="submit">Enregistrer le logement</PrimaryButton>
+                                    <PrimaryButton type="submit">{t("housing.form.submit")}</PrimaryButton>
                                 </div>
                             </form>
                         </GlassCard>
@@ -444,11 +470,11 @@ const LogementsPage = () => {
 
                     {/* Liste logements */}
                     <div className="space-y-4">
-                        {loadingLogements && <p className="text-white/55">Chargement...</p>}
+                        {loadingLogements && <p className="text-white/55">{t("common.loading")}</p>}
 
                         {!loadingLogements && logementsSorted.length === 0 && (
                             <div className="text-center py-10 text-white/55">
-                                Aucun logement enregistré. Commencez par en ajouter un.
+                                {t("housing.list.empty")}
                             </div>
                         )}
 
@@ -459,11 +485,6 @@ const LogementsPage = () => {
 
                                 return (
                                     <GlassCard key={logement.id} className="overflow-hidden">
-                                        {/* CORRECTION LAYOUT:
-                                            On utilise flex items-center pour aligner le contenu.
-                                            Le bouton principal prend flex-1 (tout l'espace dispo).
-                                            Le bouton supprimer est juste à côté, dans le flux normal (pas d'absolute).
-                                        */}
                                         <div className="flex items-center gap-2 p-2 pr-4 transition hover:bg-white/[0.03]">
                                             <button
                                                 type="button"
@@ -473,41 +494,40 @@ const LogementsPage = () => {
                                                 <div className="flex items-center justify-between gap-4">
                                                     <div className="flex items-center gap-4">
                                                         <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white/70">
-                                                            🏠
+                                                            <IconHouse />
                                                         </div>
 
                                                         <div>
                                                             <div className="flex flex-wrap items-center gap-2">
                                                                 <h3 className="text-sm font-semibold text-white/90">
-                                                                    Logement {logement.superficie}m² · {logement.nombre_pieces} pièces
+                                                                    {t("housing.card.title")} {logement.superficie}m² · {logement.nombre_pieces} {t("housing.card.rooms")}
                                                                 </h3>
-                                                                <Pill>Isolation {logement.classe_isolation}</Pill>
+                                                                <Pill>{t("housing.card.isolation")} {logement.classe_isolation}</Pill>
                                                             </div>
 
                                                             <p className="mt-1 text-xs text-white/55">
                                                                 {typeof logement.emission_co2_annuelle === "number"
                                                                     ? `${logement.emission_co2_annuelle.toFixed(0)} kgCO₂/an`
-                                                                    : "Émissions : —"}
+                                                                    : t("housing.card.emissions.none")}
                                                             </p>
                                                         </div>
                                                     </div>
 
-                                                    <div className="text-xs font-semibold text-white/60">
-                                                        {opened ? "Masquer ▲" : "Voir appareils ▼"}
+                                                    <div className="flex items-center gap-2 text-xs font-semibold text-white/60">
+                                                        <span>{opened ? t("housing.card.hide") : t("housing.card.showAppliances")}</span>
+                                                        {opened ? <IconChevronUp /> : <IconChevronDown />}
                                                     </div>
                                                 </div>
                                             </button>
 
-                                            {/* Séparateur visuel optionnel */}
                                             <div className="h-8 w-px bg-white/10" />
 
-                                            {/* Bouton Supprimer positionné via Flexbox */}
                                             <button
                                                 onClick={(e) => handleDeleteLogement(logement.id, e)}
                                                 className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 text-red-200 transition hover:bg-red-500/20"
-                                                title="Supprimer le logement"
+                                                title={t("housing.delete.tooltip")}
                                             >
-                                                ❌
+                                                <IconTrash />
                                             </button>
                                         </div>
 
@@ -516,10 +536,10 @@ const LogementsPage = () => {
                                                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                                     <div>
                                                         <p className="text-xs font-medium uppercase tracking-wide text-white/45">
-                                                            Appareils électroménagers
+                                                            {t("housing.appliances.title")}
                                                         </p>
                                                         <p className="mt-1 text-xs text-white/55">
-                                                            Ajoutez vos équipements pour affiner l’estimation.
+                                                            {t("housing.appliances.subtitle")}
                                                         </p>
                                                     </div>
 
@@ -527,27 +547,26 @@ const LogementsPage = () => {
                                                         type="button"
                                                         onClick={() => setIsAddingAppareil(logement.id)}
                                                     >
-                                                        + Ajouter un appareil
+                                                        {t("housing.appliances.add")}
                                                     </GhostButton>
                                                 </div>
 
-                                                {/* Inline form ajout appareil */}
                                                 {isAddingAppareil === logement.id && (
                                                     <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
                                                         <div className="grid gap-4 md:grid-cols-4">
                                                             <div className="md:col-span-2">
-                                                                <label className={labelClass}>Nom</label>
+                                                                <label className={labelClass}>{t("housing.appliances.form.name")}</label>
                                                                 <input
                                                                     type="text"
                                                                     className={inputClass}
-                                                                    placeholder="Ex : Frigo"
+                                                                    placeholder={t("housing.appliances.form.namePlaceholder")}
                                                                     value={String(formAppareil.nom ?? "")}
                                                                     onChange={(e) => setFormAppareil({ ...formAppareil, nom: e.target.value })}
                                                                 />
                                                             </div>
 
                                                             <div>
-                                                                <label className={labelClass}>Type</label>
+                                                                <label className={labelClass}>{t("housing.appliances.form.type")}</label>
                                                                 <select
                                                                     className={selectClass}
                                                                     value={String(formAppareil.type ?? "Autre")}
@@ -564,7 +583,7 @@ const LogementsPage = () => {
                                                             </div>
 
                                                             <div>
-                                                                <label className={labelClass}>Conso (kWh/an)</label>
+                                                                <label className={labelClass}>{t("housing.appliances.form.consumption")}</label>
                                                                 <input
                                                                     type="number"
                                                                     className={inputClass}
@@ -584,7 +603,7 @@ const LogementsPage = () => {
                                                                 type="button"
                                                                 onClick={() => setIsAddingAppareil(null)}
                                                             >
-                                                                Annuler
+                                                                {t("common.cancel")}
                                                             </SecondaryButton>
 
                                                             <PrimaryButton
@@ -592,7 +611,7 @@ const LogementsPage = () => {
                                                                 onClick={() => handleCreateAppareil(logement.id)}
                                                                 disabled={!String(formAppareil.nom ?? "").trim()}
                                                             >
-                                                                Ajouter
+                                                                {t("housing.appliances.form.submit")}
                                                             </PrimaryButton>
                                                         </div>
                                                     </div>
@@ -605,11 +624,12 @@ const LogementsPage = () => {
                                                                 key={app.id}
                                                                 appareil={app}
                                                                 onDelete={(id) => handleDeleteAppareil(logement.id, id)}
+                                                                t={t}
                                                             />
                                                         ))
                                                     ) : (
                                                         <p className="py-3 text-sm text-white/55 italic">
-                                                            Aucun appareil ajouté.
+                                                            {t("housing.appliances.empty")}
                                                         </p>
                                                     )}
                                                 </div>

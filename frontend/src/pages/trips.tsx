@@ -58,10 +58,10 @@ const TripsPage = () => {
         });
 
         if (res.status === 401) {
-            throw new Error("Non authentifié : reconnecte-toi.");
+            throw new Error(t("common.error")); // Ou un message spécifique pour auth
         }
         if (!res.ok) {
-            throw new Error("Erreur lors du chargement des trajets");
+            throw new Error(t("trips.error.load"));
         }
 
         const data: Trip[] = await res.json();
@@ -86,7 +86,7 @@ const TripsPage = () => {
                 await Promise.all([fetchTrips(), fetchVehicles()]);
             } catch (err) {
                 console.error("Erreur chargement trips/vehicles :", err);
-                setError(err instanceof Error ? err.message : "Erreur inconnue");
+                setError(err instanceof Error ? err.message : t("common.error"));
             } finally {
                 setLoading(false);
             }
@@ -109,11 +109,11 @@ const TripsPage = () => {
         });
 
         if (res.status === 401) {
-            throw new Error("Non authentifié : reconnecte-toi.");
+            throw new Error(t("common.error"));
         }
         if (!res.ok) {
             const txt = await res.text().catch(() => "");
-            throw new Error(txt || "Erreur lors de la création du trajet");
+            throw new Error(txt || t("trips.error.create"));
         }
 
         const created: Trip = await res.json();
@@ -138,7 +138,7 @@ const TripsPage = () => {
     };
 
     async function handleDeleteTrip(id: Trip["id"]) {
-        const ok = window.confirm("Supprimer ce trajet ?");
+        const ok = window.confirm(t("trips.delete.confirm"));
         if (!ok) return;
 
         try {
@@ -146,14 +146,14 @@ const TripsPage = () => {
             setTrips((prev) => prev.filter((t) => t.id !== id));
         } catch (err) {
             console.error("Erreur suppression trajet:", err);
-            alert("Erreur lors de la suppression du trajet.");
+            alert(t("trips.delete.error"));
         }
     }
 
     // Petites helpers UI
     const countText = useMemo(() => {
         if (loading) return "…";
-        if (error) return t("trips.list.status.error") ?? "Erreur";
+        if (error) return t("trips.list.status.error");
         return `${trips.length} ${t("trips.list.countSuffix")}`;
     }, [loading, error, trips.length, t]);
 
@@ -205,9 +205,9 @@ const TripsPage = () => {
                             </h2>
 
                             {loading ? (
-                                <span className="text-xs text-white/45">Chargement…</span>
+                                <span className="text-xs text-white/45">{t("common.loading")}</span>
                             ) : error ? (
-                                <span className="text-xs text-red-300">Erreur</span>
+                                <span className="text-xs text-red-300">{t("trips.list.status.error")}</span>
                             ) : (
                                 <span className="text-xs text-white/45">
                                     {trips.length} {t("trips.list.countSuffix")}
@@ -217,7 +217,7 @@ const TripsPage = () => {
 
                         {loading ? (
                             <div className="px-5 py-10 text-center text-sm text-white/60">
-                                Chargement des trajets…
+                                {t("common.loading")}
                             </div>
                         ) : error ? (
                             <div className="px-5 py-10 text-center text-sm text-red-300">

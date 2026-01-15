@@ -18,12 +18,17 @@ function safeT(t: (key: string) => string, key: string, fallback: string) {
 export const Carbobot = () => {
     const { t } = useTranslation();
 
-    const [messages, setMessages] = useState<Msg[]>([
-        {
-            content: "Bonjour ! Je suis CarboBot. Pose-moi une question sur ton empreinte carbone 🌱",
-            isUser: false,
-        },
-    ]);
+    const [messages, setMessages] = useState<Msg[]>([]);
+    // Initialiser le message d'accueil
+    useEffect(() => {
+        if (messages.length === 0) {
+            setMessages([{
+                content: t("carbobot.intro"),
+                isUser: false,
+            }]);
+        }
+    }, [t, messages.length]);
+
     const [inputValue, setInputValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
@@ -35,8 +40,6 @@ export const Carbobot = () => {
     );
 
     const scrollToBottom = () => {
-        // "smooth" peut parfois donner une sensation de bug si le layout bouge,
-        // mais ici on le garde comme avant.
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
@@ -60,7 +63,7 @@ export const Carbobot = () => {
             setMessages((prev) => [
                 ...prev,
                 {
-                    content: "Oups… je n’arrive pas à répondre pour le moment. Réessaie dans quelques secondes.",
+                    content: t("carbobot.error"),
                     isUser: false,
                 },
             ]);
@@ -84,14 +87,14 @@ export const Carbobot = () => {
                             </div>
                             <div>
                                 <p className="text-[11px] font-medium uppercase tracking-wide text-white/45">
-                                    Assistant
+                                    {t("carbobot.assistant")}
                                 </p>
                                 <h1 className="text-sm font-semibold text-white/90">CarboBot</h1>
                             </div>
                         </div>
 
                         <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-medium text-white/60">
-        Conseils CO₂
+        {t("carbobot.badge")}
       </span>
                     </div>
                 </div>
@@ -119,7 +122,7 @@ export const Carbobot = () => {
                     {isLoading && (
                         <div className="flex justify-start">
                             <div className="border border-white/10 bg-white/[0.06] px-4 py-2.5 rounded-2xl rounded-bl-md animate-pulse text-white/60 text-xs">
-                                CarboBot réfléchit…
+                                {t("carbobot.thinking")}
                             </div>
                         </div>
                     )}
@@ -144,7 +147,7 @@ export const Carbobot = () => {
                         />
                         <div className="mt-1 flex items-center justify-between">
                             <p className="text-[11px] text-white/40">
-                                Ex : “Comment réduire mon CO₂ au quotidien ?”
+                                {t("carbobot.inputExample")}
                             </p>
                             <button
                                 type="button"
@@ -152,7 +155,7 @@ export const Carbobot = () => {
                                 disabled={isLoading || inputValue.length === 0}
                                 className="text-[11px] text-white/35 hover:text-white/60 disabled:opacity-50"
                             >
-                                Effacer
+                                {t("carbobot.clear")}
                             </button>
                         </div>
                     </div>
@@ -161,7 +164,7 @@ export const Carbobot = () => {
                         onClick={handleSend}
                         disabled={!canSend}
                         className="rounded-2xl px-4 py-3 bg-gradient-to-r from-emerald-600 to-green-600 text-white shadow-[0_10px_30px_-18px_rgba(16,185,129,0.65)] transition hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
-                        aria-label="Envoyer"
+                        aria-label={t("carbobot.send")}
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
