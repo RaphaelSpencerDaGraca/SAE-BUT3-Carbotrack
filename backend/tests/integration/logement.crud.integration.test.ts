@@ -15,21 +15,18 @@ describe('Integration - Logement CRUD', () => {
     it('devrait gérer le cycle de vie complet d\'un logement', async () => {
         // --- 1. SETUP (Dépendances) ---
         
-        // A. On crée un utilisateur
         const userInsert = await testPool.query(
             `INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id`,
             ['crud@logement.com', 'hash']
         );
         const userId = userInsert.rows[0].id;
 
-        // B. CORRECTION : On crée OBLIGATOIREMENT le profil associé
-        // Car la table logement pointe vers user_profiles, pas users !
         await testPool.query(
             `INSERT INTO user_profiles (user_id, emission_co2_lifestyle) VALUES ($1, 0)`,
             [userId]
         );
 
-        // C. On crée/récupère un type de chauffage
+
         const chauffageInsert = await testPool.query(
             `INSERT INTO type_chauffage (type_chauffage, consommation_moyenne_kwh_m2, facteur_emission_co2) 
              VALUES ($1, $2, $3) 
@@ -39,7 +36,7 @@ describe('Integration - Logement CRUD', () => {
         );
         const chauffageId = chauffageInsert.rows[0].id;
 
-        // --- 2. CREATE (Création) ---
+
         const newLogement = {
             user_id: userId,
             superficie: 75,
@@ -66,7 +63,7 @@ describe('Integration - Logement CRUD', () => {
         // --- 5. DELETE (Suppression) ---
         await deleteLogementById(created.id);
 
-        // Vérification que c'est bien supprimé
+  
         const afterDelete = await getLogementById(created.id);
         expect(afterDelete).toBeUndefined(); 
     });
