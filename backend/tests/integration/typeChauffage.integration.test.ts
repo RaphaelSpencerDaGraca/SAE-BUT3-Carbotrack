@@ -8,12 +8,9 @@ import { getAllTypesChauffage, getTypeChauffageById } from '../../src/models/typ
 describe('Integration - Type Chauffage', () => {
     
     beforeAll(async () => { await initTestDb(); });
-    // Note : On NE vide PAS la base ici (clearTestDb) car on veut garder les types insérés
-    // Ou alors on s'assure d'en insérer un nous-même.
-    // Par sécurité, insérons nos propres données de test.
     beforeEach(async () => { 
         await clearTestDb(); 
-        // Insertion de données de test contrôlées
+
         await testPool.query(`
             INSERT INTO type_chauffage (type_chauffage, consommation_moyenne_kwh_m2, facteur_emission_co2)
             VALUES 
@@ -26,21 +23,18 @@ describe('Integration - Type Chauffage', () => {
 
     it('devrait récupérer la liste complète des types de chauffage', async () => {
         const types = await getAllTypesChauffage();
-        
-        // On vérifie qu'on a bien des résultats
+
         expect(types.length).toBeGreaterThanOrEqual(2);
         
-        // On cherche nos valeurs de test
+
         const solaire = types.find(t => t.type_chauffage === 'Solaire');
         expect(solaire).toBeDefined();
     });
 
     it('devrait récupérer un type spécifique par ID', async () => {
-        // On récupère d'abord un ID existant via SQL pour être sûr
         const res = await testPool.query("SELECT id FROM type_chauffage WHERE type_chauffage = 'Fioul'");
         const fioulId = res.rows[0].id;
 
-        // Test de la fonction du modèle
         const type = await getTypeChauffageById(fioulId);
         
         expect(type).toBeDefined();
