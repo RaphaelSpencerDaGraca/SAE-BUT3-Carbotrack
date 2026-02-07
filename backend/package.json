@@ -9,7 +9,7 @@
     "seed:test-user": "npx ts-node ./scripts/seedTestUser.ts",
     "test:login:server": "npx ts-node ./scripts/testLogin.ts",
     "import:car-labelling": "ts-node scripts/importCarLabelling.ts",
-    "test": "vitest"
+    "test": "vitest --no-file-parallelism"
   },
   "dependencies": {
     "@gradio/client": "^1.13.2",
