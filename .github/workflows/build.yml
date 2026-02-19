@@ -3,16 +3,28 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    types: [opened, synchronize, reopened]
+      - "chore/**"
+      - "feature/**"
+      - "fix/**"
+
 jobs:
   sonarqube:
     name: SonarQube
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0
+
+      - name: Debug SONAR_TOKEN presence
+        run: |
+          if [ -z "${{ secrets.SONAR_TOKEN }}" ]; then
+            echo "SONAR_TOKEN is MISSING"
+            exit 1
+          else
+            echo "SONAR_TOKEN is PRESENT"
+          fi
+
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
