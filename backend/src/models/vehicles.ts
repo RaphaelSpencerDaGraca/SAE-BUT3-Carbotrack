@@ -15,6 +15,7 @@ export async function getOwnedVehicleForTrip(userId: string, vehicleId: number):
             SELECT
                 id,
                 name,
+                type,
                 fuel_type AS "fuelType",
                 consumption_l_per_100 AS "consumptionLPer100"
             FROM vehicles
