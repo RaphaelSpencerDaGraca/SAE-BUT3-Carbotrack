@@ -6,6 +6,35 @@ import { getOwnedVehicleForTrip } from '../models/vehicles';
 import { insertTrip, listTripsByUser, deleteTripByUser } from '../models/trips';
 import { updateTripByUser } from "../models/trips";
 
+const PUBLIC_TRANSPORTS = [
+    { label: "Train (TGV)", co2PerKm: 2.3 }, // g/km
+    { label: "Train (TER/Intercités)", co2PerKm: 24.8 },
+    { label: "Avion (Moyen)", co2PerKm: 230 },
+    { label: "Métro / RER", co2PerKm: 4 },
+    { label: "Bus", co2PerKm: 104 },
+    { label: "Tramway", co2PerKm: 3 },
+];
+
+function computeCo2Kg(vehicle: any, distanceKm: number) {
+    if (vehicle?.type?.toLowerCase() === "transport") {
+        const mode = PUBLIC_TRANSPORTS.find(
+            (m) => m.label.toLowerCase().trim() === String(vehicle.name).toLowerCase().trim()
+        );
+        if (mode) return (distanceKm * mode.co2PerKm) / 1000;
+    }
+
+    return (
+        calculateTripEmissionsKgCO2(
+
+            {
+                fuelType: vehicle.fuelType,
+                consumptionLPer100: vehicle.consumptionLPer100 ?? null,
+            },
+            distanceKm
+        ) ?? 0
+    );
+}
+
 const router = Router();
 
 router.get('/', authenticate, async (req: any, res) => {
@@ -48,14 +77,13 @@ router.post('/', authenticate, async (req: any, res) => {
             return res.status(403).json({ error: "Ce véhicule ne t'appartient pas (ou n'existe pas)." });
         }
 
-        const co2Kg =
-            calculateTripEmissionsKgCO2(
-                {
-                    fuelType: vehicle.fuelType,
-                    consumptionLPer100: vehicle.consumptionLPer100 ?? null,
-                },
-                dist
-            ) ?? 0;
+        console.log("🚗 Vehicle reçu:", vehicle);
+        console.log("📏 Distance:", dist);
+        console.log("🧮 CO2 calculé:", computeCo2Kg(vehicle, dist));
+
+        const co2Kg = computeCo2Kg(vehicle, dist);
+
+
 
         const createdRow = await insertTrip({
             userId,
@@ -141,11 +169,7 @@ router.patch("/:id", authenticate, async (req: any, res) => {
         const vehicle = await getOwnedVehicleForTrip(userId, Number(finalVehicleId));
         if (!vehicle) return res.status(403).json({ error: "Ce véhicule ne t'appartient pas (ou n'existe pas)." });
 
-        patch.co2Kg =
-            calculateTripEmissionsKgCO2(
-                { fuelType: vehicle.fuelType, consumptionLPer100: vehicle.consumptionLPer100 ?? null },
-                Number(finalDistanceKm)
-            ) ?? 0;
+        patch.co2Kg = computeCo2Kg(vehicle, Number(finalDistanceKm));
 
         const updated = await updateTripByUser(userId, tripId, patch);
         if (!updated) return res.status(404).json({ error: "Trajet introuvable." });
